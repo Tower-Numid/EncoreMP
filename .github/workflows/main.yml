@@ -1,0 +1,173 @@
+name: Ubuntu Build & Test
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'fix/*'
+      - 'feat/*'
+  pull_request:
+    branches: [ master ]
+    types:
+      - created
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  GIT_TERMINAL_PROMPT: 0
+
+jobs:
+  Ubuntu:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify CI files
+        run: |
+          ls -la CI/
+          cat CI/make_package.ubuntu.sh
+
+      - name: Make script executable
+        run: chmod +x CI/make_package.ubuntu.sh
+
+      # - name: Run packaging
+      #   run: |
+      #     echo "Running packaging script:"
+      #     ./CI/make_package.ubuntu.sh || (echo "Script failed"; exit 1)
+
+      - name: Add OpenMW PPA Dependencies
+        run: sudo add-apt-repository ppa:openmw/openmw; sudo apt-get update
+
+      - name: Install Building Dependencies
+        run: |
+          sudo CI/install_debian_deps.sh gcc openmw-deps openmw-deps-dynamic
+          curl -o CrabNet.7z -L https://github.com/DreamWeave-MP/CrabNet/releases/download/Stable-CI/CrabNet-Linux-Release.7z
+          7z x -y CrabNet.7z -oextern/raknet
+          sudo apt-get install -y libluajit-5.1-dev
+
+      - name: Install Doxygen
+        run: sudo apt-get install -y doxygen
+
+      - name: Install Graphviz (dot for Doxygen)
+        run: sudo apt-get install -y graphviz
+
+      - name: Build and Install GTest (v1.10.0)
+        run: |
+          sudo apt-get install -y cmake ninja-build
+          git clone --depth 1 --branch release-1.10.0 https://github.com/google/googletest.git
+          cd googletest
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_GMOCK=ON
+          cmake --build build
+          sudo cmake --install build
+      
+      - name: Prime ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          max-size: 1000M
+
+      - name: Configure
+        run: |
+          rm -rf build CMakeCache.txt CMakeFiles/ 
+          cmake . \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DBUILD_UNITTESTS=ON \
+            -DCMAKE_INSTALL_PREFIX=install \
+            -DCMAKE_CXX_STANDARD=14 \
+            -DCMAKE_CXX_FLAGS="-std=c++14" \
+            -DDESIRED_QT_VERSION=5 \
+            -DBUILD_OPENMW_MP=ON
+
+      
+      - name: List Build Targets
+        run: cmake --build . --target help
+
+      # - name: Build
+      #   run: make -j$(nproc)
+
+      # - name: Build tes3mp-server
+      #   run: cmake --build . --target all -- -j$(nproc) VERBOSE=1 | tee full_build.log
+
+      - name: Build and Debug
+        run: |
+          # Build with verbose output
+          cmake --build . --target all -- -j$(nproc) VERBOSE=1 2>&1 | tee full_build.log
+    
+          # Check for errors
+          if grep -q "error:" full_build.log; then
+              echo "=== BUILD ERRORS ==="
+              grep -A 10 -B 5 -i "error:" full_build.log
+              echo "=== CRITICAL WARNINGS ==="
+              grep -A 5 -i "warning:" full_build.log | grep -i "critical\|fatal"
+              echo "=== MAIN.CPP ERRORS ==="
+              grep -A 15 -B 5 -i "main.cpp" full_build.log
+              exit 1
+          fi
+
+      # In your CI workflow, replace the verification step with:
+      # - name: Verify Binary
+      #   run: |
+      #     echo "Checking for tes3mp-server in root directory:"
+      #     ls -la tes3mp-server || echo "Not found in root"
+      #     echo "Checking build directory:"
+      #     ls -la apps/openmw-mp/
+      #     echo "Full search:"
+      #     find . -name tes3mp-server
+
+      # - name: Install Server Only
+      #   shell: bash
+      #   run: |
+      #     mkdir -p install
+      #     cmake --install . --component tes3mp-server --prefix $PWD/install
+      #     ls -la .
+      #     ls -la ..
+      #     ls -la ..
+      #     ls -la ..
+
+      - name: Install
+        shell: bash
+        run: |
+          cmake --install .
+          ls -la .
+
+      - name: Create Artifact
+        shell: bash
+        run: |
+          # Make sure we're in root directory
+          cd $GITHUB_WORKSPACE  
+          sudo CI/make_package.ubuntu.sh
+          # # Verify package contents
+          # tar tzf tes3mp_linux.tar | grep bin/tes3mp-server
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: tes3mp-server.tar.gz
+          name: tes3mp-server-linux
+
+  # MacOS:
+  #   runs-on: macos-latest
+
+  #   steps:
+  #     - uses: actions/checkout@v2
+
+  #     - name: Install Building Dependencies
+  #       run: CI/before_install.osx.sh
+
+  #     - name: Prime ccache
+  #       uses: hendrikmuhs/ccache-action@v1
+  #       with:
+  #         key: ${{ matrix.os }}-${{ env.BUILD_TYPE }}
+  #         max-size: 1000M
+
+  #     - name: Configure
+  #       run: |
+  #         rm -fr build  # remove the build directory
+  #         CI/before_script.osx.sh
+  #     - name: Build
+  #       run: |
+  #         cd build
+  #         make -j $(sysctl -n hw.logicalcpu) package

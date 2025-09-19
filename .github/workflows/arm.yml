@@ -1,0 +1,152 @@
+name: ARM64 Build
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+        
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
+      
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+      
+    - name: Build ARM64 binary
+      run: |
+        # Create Dockerfile
+        cat << 'EOF' > Dockerfile.arm64
+        FROM arm64v8/ubuntu:20.04
+
+        # needed for ffmpeg if building the client???
+        # libavcodec-dev \
+        # libavformat-dev \
+        # libavutil-dev \
+        # libswscale-dev \
+        # libswresample-dev \
+
+        # osg
+        # libopenscenegraph-dev \
+        # libopenthreads-dev \
+
+        # Set environment variables to avoid interactive prompts
+        ENV DEBIAN_FRONTEND=noninteractive
+        ENV TZ=UTC
+
+        # Install dependencies
+        RUN apt-get update && apt-get install -y \
+            build-essential \
+            gcc-8 \
+            g++-8 \
+            cmake \
+            ninja-build \
+            ccache \
+            git \
+            libluajit-5.1-dev \
+            liblua5.1-dev \
+            libboost-system-dev \
+            libboost-thread-dev \
+            libboost-filesystem-dev \   
+            libboost-program-options-dev \  
+            libboost-iostreams-dev \   
+            libsdl2-dev \
+            libopenal-dev \
+            libbullet-dev \
+            libmygui-dev \
+            qtbase5-dev \
+            libqt5opengl5-dev \
+            p7zip-full \
+            wget \
+            liblz4-dev \
+            libavcodec-dev \
+            libavformat-dev \
+            libavutil-dev \
+            libswscale-dev \
+            libswresample-dev \
+            libunshield-dev \
+            libopenscenegraph-dev \  
+            libopenthreads-dev \    
+            && rm -rf /var/lib/apt/lists/*
+
+        # Set GCC 8 as the default compiler
+        RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 100
+        RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 100
+        RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-8 100
+        RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-8 100
+
+        # Build RecastNavigation from source
+        RUN mkdir -p /tmp/recastnavigation && cd /tmp/recastnavigation && \
+            git clone --depth 1 --branch v1.6.0 https://github.com/recastnavigation/recastnavigation.git . && \
+            mkdir build && cd build && \
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DRECASTNAVIGATION_DEMO=OFF -DRECASTNAVIGATION_TESTS=OFF && \
+            make -j$(nproc) && \
+            make install && \
+            cd / && rm -rf /tmp/recastnavigation
+
+        # Build RakNet from source
+        RUN mkdir -p /tmp/raknet && cd /tmp/raknet && \
+            wget https://github.com/DreamWeave-MP/CrabNet/archive/refs/tags/Stable-CI.tar.gz && \
+            tar xzf Stable-CI.tar.gz && \
+            cd CrabNet-Stable-CI && \
+            cmake . -DCMAKE_BUILD_TYPE=Release -DRAKNET_ENABLE_DLL=OFF -DRAKNET_ENABLE_SAMPLES=OFF && \
+            make -j$(nproc) && \
+            make install && \
+            cd / && rm -rf /tmp/raknet
+
+        WORKDIR /build
+        COPY . .
+
+        # Fix va_list issues in all relevant files
+        RUN find . -type f \( -name "*.hpp" -o -name "*.cpp" \) -exec sed -i 's/__va_list/va_list/g' {} +
+
+        RUN mkdir build && cd build && \
+            cmake .. \
+              -DBUILD_OPENMW=OFF \
+              -DBUILD_OPENMW_MP=ON \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DOPENMW_USE_SYSTEM_BULLET=ON \
+              -DOPENMW_USE_SYSTEM_MYGUI=ON \
+              -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=ON \
+              -DDISABLE_FFMPEG=ON \
+              -DBUILD_OPENCS=OFF \              
+              -DBUILD_BROWSER=OFF \              
+              -DBUILD_LAUNCHER=OFF \             
+              -DBUILD_WIZARD=OFF \               
+              -DBUILD_NIFTEST=OFF \              
+              -DBUILD_ESMTOOL=OFF && \           
+            cmake --build . --target tes3mp-server -- -j$(nproc)
+        EOF
+        
+        # Build Docker image
+        docker buildx build --platform linux/arm64 -f Dockerfile.arm64 -t tes3mp-arm64 . --load
+        
+        # Create container and copy binary
+        docker create --name tes3mp-container --platform linux/arm64 tes3mp-arm64
+        docker cp tes3mp-container:/build/build/apps/openmw-mp/tes3mp-server .
+        docker rm tes3mp-container
+        
+    - name: Verify ARM64 binary
+      run: |
+        file tes3mp-server
+        # Should show: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV)...
+        
+    - name: Package artifact
+      run: |
+        mkdir -p package
+        mv tes3mp-server package/
+        cp tes3mp-server-default.cfg package/
+        tar czf tes3mp-server-arm64.tar.gz -C package .
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tes3mp-server-arm64
+        path: tes3mp-server-arm64.tar.gz
