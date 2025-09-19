@@ -59,6 +59,8 @@
 #include "interpretercontext.hpp"
 #include "ref.hpp"
 
+#include <chrono>
+
 namespace
 {
 
