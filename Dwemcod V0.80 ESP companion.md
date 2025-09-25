@@ -1,7 +1,5 @@
 This file details all the changes made in the required ESP file for the V0.80 dwemer coda beta release, `dwemcodV080.ESP`.
 
-==Everything changed in dwemcod 1J:== `C:\Users\Joeme\Documents\Morrowind\JM ESP modding\JM ESP files\dwemcod 1J content`
-
 # GMSTs
 
 **Shops and mercantile**
