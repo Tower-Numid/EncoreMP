@@ -6,14 +6,17 @@ Baladas Demnevanni, 3E 427
 ```
 
 **What is this project?**
+
 This is an engine level re-work of many of Morrowinds core gameplay mechanics, forked from tes3mp. As a branch of tes3mp, this is also multiplayer compatible. 
 
 It has been designed with maximum mod compatibility in mind, and most especially for full compatibility with the tamriel rebuilt project. It does this by changing as little as possible via the ESP file, and by making all the engine level changes as content agnostic as possible.
 
 **How is this different to other gameplay overhauls?**
+
 This project hosts almost all of it's changes in the games engine, not in an ESP file. So this should be compatible with almost all new content mods.
 
 **What is the tone of the overhaul?**
+
 This tries as much as possible not to break from the sprit of the original game. 
 
 There are some new mechanics, and a lot of balancing changes, but overall I want this to feel like the original Morrowind did twenty something years ago.
@@ -21,9 +24,11 @@ There are some new mechanics, and a lot of balancing changes, but overall I want
 As a Beta version it is in need of playtesting and feedback, and the economy aspect is likely the most punishing change - but overall it is not meant to be harder just for the sake of it.
 
 **Does it actually have anything to do with the dwemer?**
+
 No, it's just an internal project name that stuck. There is no new content added, but there may be in the future as an optional extra ESP file.
 
 **What does it change?**
+
 This is a brief summary of the changes made, for more details see the mechanical changelog below, not everything is listed here:
 
 (Unless stated, all mechanical changes affect the player only)
