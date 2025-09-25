@@ -69,6 +69,8 @@ Hosted at: https://github.com/Tower-Numid/dwemercoda
 
 Discussion (feedback) page: https://github.com/Tower-Numid/dwemercoda/discussions
 
+Download link: https://github.com/Tower-Numid/dwemercoda/releases/tag/V0.80
+
 # Mechanics changelog
 
 1. Climbing
