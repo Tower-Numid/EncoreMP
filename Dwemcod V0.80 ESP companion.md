@@ -125,27 +125,23 @@ Command humanoid 15 -> 8
 Summons: unchanged
 
 ==**Destruction**==  
-Sun damage: unchanged (1)
+Sun damage: unchanged (1) 
 Fire/Frost damage: unchanged (5)  
-Shock damage 7 -> 6
-Poison damage 9 -> 4
-Drain health 4 -> 3
-Damage health 8 -> 7
-
-Weakness to fire/frost/shock/poison 2 -> 0.7
-Weakness to magicka 2 -> 1
-
-Drain fatigue 4 -> 1
-Damage fatigue 4 -> 2
-Drain Magicka 4 -> 1
-Damage Magicka 8 -> 4
-
-Damage attribute 8 -> 15
-Drain attribute: unchanged (1)
-Drain skill: unchanged (1)
-
-Disintegrate weapon 6 -> 1
-Disintegrate armour 6 -> 2
+Shock damage 7 -> 6 
+Poison damage 9 -> 4 
+Drain health 4 -> 3 
+Damage health 8 -> 7 
+Weakness to fire/frost/shock/poison 2 -> 0.7 
+Weakness to magicka 2 -> 1 
+Drain fatigue 4 -> 1 
+Damage fatigue 4 -> 2 
+Drain Magicka 4 -> 1 
+Damage Magicka 8 -> 4 
+Damage attribute 8 -> 15 
+Drain attribute: unchanged (1) 
+Drain skill: unchanged (1) 
+Disintegrate weapon 6 -> 1 
+Disintegrate armour 6 -> 2 
 
 
 ==**Illusion**==  
