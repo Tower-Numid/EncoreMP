@@ -126,6 +126,7 @@ Summons: unchanged
 
 ==**Destruction**==  
 Sun damage: unchanged (1) 
+
 Fire/Frost damage: unchanged (5)  
 Shock damage 7 -> 6 
 Poison damage 9 -> 4 
