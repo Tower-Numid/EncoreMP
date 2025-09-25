@@ -117,12 +117,12 @@ Water walking 3 -> 2
 Open 6 -> 15
 
 ==**Conjuration**==  
-Turn undead: unchanged (0.2)
-Bound weapons: unchanged (2) 
-Bound armour: unchanged (2) 
-Command creature 15 -> 7  
-Command humanoid 15 -> 8
-Summons: unchanged
+Turn undead: unchanged (0.2)  
+Bound weapons: unchanged (2)   
+Bound armour: unchanged (2)   
+Command creature 15 -> 7    
+Command humanoid 15 -> 8  
+Summons: unchanged  
 
 ==**Destruction**==  
 Sun damage: unchanged (1) 
