@@ -621,6 +621,7 @@ Pickpocketing has been reworked extensively, but stealth itself has not yet been
 | 80           | 104             | 520                                                                   | 395                                                                       |
 | 90           | 118             | 590                                                                   | 465                                                                       |
 | 100          | 130             | 650                                                                   | 525                                                                       |
+
 [1] The players pickpocketing term is calculated as `(sneak skill) + (agility * 0.2) + (luck * 0.1)`. This table makes some assumptions about player attributes increasing along with their skills, and should be broadly correct if the player is trying to focus on the relevant stats as they play
 
 **What appears in the pickpocket menu is determined by item value and the players skill**
