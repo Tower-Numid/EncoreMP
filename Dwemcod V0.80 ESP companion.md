@@ -125,86 +125,72 @@ Command humanoid 15 -> 8
 Summons: unchanged  
 
 ==**Destruction**==  
-Sun damage: unchanged (1) 
-
-Fire/Frost damage: unchanged (5)  
-Shock damage 7 -> 6 
-Poison damage 9 -> 4 
-Drain health 4 -> 3 
-Damage health 8 -> 7 
-Weakness to fire/frost/shock/poison 2 -> 0.7 
-Weakness to magicka 2 -> 1 
-Drain fatigue 4 -> 1 
-Damage fatigue 4 -> 2 
-Drain Magicka 4 -> 1 
-Damage Magicka 8 -> 4 
-Damage attribute 8 -> 15 
-Drain attribute: unchanged (1) 
-Drain skill: unchanged (1) 
-Disintegrate weapon 6 -> 1 
-Disintegrate armour 6 -> 2 
-
+Sun damage: unchanged (1)  
+Fire/Frost damage: unchanged (5)    
+Shock damage 7 -> 6   
+Poison damage 9 -> 4   
+Drain health 4 -> 3   
+Damage health 8 -> 7   
+Weakness to fire/frost/shock/poison 2 -> 0.7   
+Weakness to magicka 2 -> 1   
+Drain fatigue 4 -> 1   
+Damage fatigue 4 -> 2   
+Drain Magicka 4 -> 1   
+Damage Magicka 8 -> 4   
+Damage attribute 8 -> 15   
+Drain attribute: unchanged (1)   
+Drain skill: unchanged (1)   
+Disintegrate weapon 6 -> 1   
+Disintegrate armour 6 -> 2   
 
 ==**Illusion**==  
-Night eye 0.2 -> 0.3  
-Light: unchanged (0.2)
-
-Sanctuary: unchanged (1)
-Chameleon 1 (unchanged)
-
-Rally target: unchanged (0.2)
-Frenzy target 1 -> 3
-Demoralize target 1 -> 0.5 (Also demoralize humanoid was set to the illusion school, not mysticism as in the base game)
-Calm target 1 -> 0.5
-
+Night eye 0.2 -> 0.3    
+Light: unchanged (0.2)  
+Sanctuary: unchanged (1)  
+Chameleon 1 (unchanged)  
+Rally target: unchanged (0.2)  
+Frenzy target 1 -> 3  
+Demoralize target 1 -> 0.5 (Also demoralize humanoid was set to the illusion school, not mysticism as in the base game)  
+Calm target 1 -> 0.5  
 Blind 1 -> 0.6  
 Sound 3 -> 0.70  
-
 Charm 5 -> 1.5  
-
 Invisibility 20 -> 10  
 Silence 40 -> 30  
-Paralyse 40 -> 60
+Paralyse 40 -> 60  
 
 
 ==**Mysticism**==  
-Detect animal 0.75 -> 0.1
-Detect enchantment 1 -> 0.6
-Detect key 1 -> 0.2
-
-Telekinesis 1 -> 6
-
-Absorb health: unchanged (8)
-Absorb fatigue 4 -> 3  
-Absorb attribute 2 -> 1.5
-
-Soul trap 2 -> 1.5  
-Dispel 5 -> 2.5  
-Reflect 10 -> 2
-Spell Absorb 10 -> 2
-
-Mark (unchanged)  
-Recall (unchanged)  
-Almisivi intervention (unchanged)  
-Divine intervention (unchanged)
+Detect animal 0.75 -> 0.1  
+Detect enchantment 1 -> 0.6  
+Detect key 1 -> 0.2  
+Telekinesis 1 -> 6  
+Absorb health: unchanged (8)  
+Absorb fatigue 4 -> 3    
+Absorb attribute 2 -> 1.5  
+Soul trap 2 -> 1.5    
+Dispel 5 -> 2.5    
+Reflect 10 -> 2  
+Spell Absorb 10 -> 2  
+Mark (unchanged)    
+Recall (unchanged)    
+Almisivi intervention (unchanged)    
+Divine intervention (unchanged)  
 
 
 ==**Restoration**==  
-Resist paralysis 0.2 -> 0.05  
-Resist common disease 2 -> 0.1  
-Resist fire/frost/shock/poison 2 -> 0.4  
-Resist magicka 2 -> 0.5  
-Resist blight disease 5 -> 0.2  
-Resist corprus disease 5 (unchanged)
-
-Fortify attribute 1 -> 0.5  
-Fortify skill 1 -> 1.5
-
-Restore attribute 1 -> 5 
-Restore fatigue 1 -> 1.5  
-Restore health 5 -> 6.5
-
-Cure Poison: unchanged (100)
-Cure Paralysis: unchanged (100)
-Cure common disease 300 -> 450
-Cure blight disease 2000 -> 700
+Resist paralysis 0.2 -> 0.05    
+Resist common disease 2 -> 0.1    
+Resist fire/frost/shock/poison 2 -> 0.4    
+Resist magicka 2 -> 0.5    
+Resist blight disease 5 -> 0.2    
+Resist corprus disease 5 (unchanged)  
+Fortify attribute 1 -> 0.5    
+Fortify skill 1 -> 1.5  
+Restore attribute 1 -> 5   
+Restore fatigue 1 -> 1.5    
+Restore health 5 -> 6.5  
+Cure Poison: unchanged (100)  
+Cure Paralysis: unchanged (100)  
+Cure common disease 300 -> 450  
+Cure blight disease 2000 -> 700  
