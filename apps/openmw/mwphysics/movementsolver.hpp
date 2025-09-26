@@ -6,7 +6,7 @@
 #include "constants.hpp"
 #include "../mwworld/ptr.hpp"
 
-/// dwemer coda header additions
+// EncoreMP header additions
 
 #include "../mwbase/world.hpp"
 #include "../mwbase/environment.hpp"
@@ -20,7 +20,7 @@
 #include "../mwmechanics/creaturestats.hpp"
 #include "../mwmechanics/npcstats.hpp"
 
-/// dwemer coda header additions
+// EncoreMP header additions
 
 class btCollisionWorld;
 
@@ -46,7 +46,7 @@ namespace MWPhysics
     template <class Vec3>
     static bool isWalkableSlope(const Vec3 &normal)
     {
-        /// start of dwemer coda changes
+        // start of EncoreMP changes
         static const float sMaxSlopeCos = std::cos(osg::DegreesToRadians(sMaxSlope));
         float newmaxslopeholder = sMaxSlopeCos;
 
@@ -76,7 +76,7 @@ namespace MWPhysics
             newmaxslopeholder = std::cos(osg::DegreesToRadians(basedegrees));
         }
         return (normal.z() > newmaxslopeholder);
-        /// end of dwemer coda changes
+        // end of EncoreMP changes
     }
 
     class Actor;

@@ -97,7 +97,7 @@ namespace MWGui
             if (item.mFlags & ItemStack::Flag_Bound)
                 continue;
 
-            // dwemcod, slight restructure of logic, an attempt at some backend guarding
+            // EncoreMP, slight restructure of logic, an attempt at some backend guarding
 
             bool itemHidden = false;
             for (const ItemStack &h : mHiddenItems)

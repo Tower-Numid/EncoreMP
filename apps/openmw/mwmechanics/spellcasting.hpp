@@ -22,7 +22,7 @@ namespace MWMechanics
     {
 
 
-    // dwemercoda addition 
+    // EncoreMP addition 
     public:
         enum class SourceType
         {
@@ -39,7 +39,7 @@ namespace MWMechanics
         MWWorld::Ptr mCaster; // May be empty
         MWWorld::Ptr mTarget; // May be empty
 
-        /// dwemer coda gets the enchantment type
+        // EncoreMP gets the enchantment type
         int mEnchantmentType;
 
 
@@ -53,7 +53,7 @@ namespace MWMechanics
         bool mAlwaysSucceed{false}; // Always succeed spells casted by NPCs/creatures regardless of their chance (default: false)
         bool mFromProjectile; // True if spell is cast by enchantment of some projectile (arrow, bolt or thrown weapon)
         bool mManualSpell; // True if spell is casted from script and ignores some checks (mana level, success chance, etc.)
-        SourceType mSourceType{ SourceType::None }; // dwemercoda addition
+        SourceType mSourceType{ SourceType::None }; // EncoreMP addition
 
     public:
         CastSpell(const MWWorld::Ptr& caster, const MWWorld::Ptr& target, const bool fromProjectile=false, const bool manualSpell=false);

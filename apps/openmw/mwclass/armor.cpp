@@ -38,7 +38,7 @@
 #include "../mwgui/tooltips.hpp"
 
 
-/// dwemer coda additions
+// EncoreMP additions
 
 
 

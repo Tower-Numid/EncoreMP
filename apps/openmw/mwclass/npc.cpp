@@ -62,12 +62,12 @@
 #include "../mwgui/tooltips.hpp"
 
 
-///dwemer coda header additions
+// EncoreMP header additions
 
 #include "../mwworld/esmstore.hpp"
 #include "../mwmechanics/weapontype.hpp"
 
-///dwemer coda header additions
+// EncoreMP header additions
 
 namespace
 {
@@ -633,7 +633,7 @@ namespace MWClass
 
         float hitchance = MWMechanics::getHitChance(ptr, victim, getSkill(ptr, weapskill));
 
-        /// start of dwemer coda accuracy modifiers
+        // start of EncoreMP accuracy modifiers
 
         if (ptr == MWBase::Environment::get().getWorld()->getPlayerPtr())
         {
@@ -660,19 +660,9 @@ namespace MWClass
                 }
             }
         }
-        // did you know you have free will, and you can just type anything as a code comment
-        // no one can stop you
-        // we did it, we are the dwemer, we got out the game and into the code
-        // we like it here
-        // we love logic and reason
-        // this is anu: 1
-        // this is padomay: 0
-        // we haven't got the hang of maybe yet
-        // but practically, random number generation is good enough
-        // we'll come back into the physical world soon, once all this stuff is done
 
 
-        // end of dwemer coda accuracy modifiers
+        // end of EncoreMP accuracy modifiers
 
         /*
             Start of tes3mp addition
@@ -1046,15 +1036,15 @@ namespace MWClass
         }
         else
         {
-            //add difficulty based scaling for H2H fatigue damage taken and dealt
+            // add difficulty based scaling for H2H fatigue damage taken and dealt
             if (!attacker.isEmpty() && !godmode)
                 if (damage > 0)
                 {
                     damage = scaleHandDamage(damage, attacker, ptr);
                 }
 
-            //dwemcod logic fork, bottom is core behaviour, top is slot for potential player H2H changes
-            //currently unused, pending server packet changes
+            // EncoreMP logic fork, bottom is core behaviour, top is slot for potential player H2H changes
+            // currently unused, pending server packet changes
             if ((attacker == MWMechanics::getPlayer()) && (damage > 0.0f))
             {
                 MWMechanics::DynamicStat<float> fatigue(getCreatureStats(ptr).getFatigue());

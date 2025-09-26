@@ -38,11 +38,11 @@
 #include "actorutil.hpp"
 #include "pathfinding.hpp"
 
-/// added by dwemer coda
+// added by EncoreMP
 
 #include "weapontype.hpp"
 
-/// added by dwemer coda
+// added by EncoreMP
 
 namespace
 {
@@ -308,7 +308,7 @@ namespace MWMechanics
                 End of tes3mp addition
             */
 
-            /// start of dwemer coda ranged attack accuracy changes
+            // start of EncoreMP ranged attack accuracy changes
 
             float hitchanceholder = 0.f;
             hitchanceholder = getHitChance(attacker, victim, skillValue);
@@ -336,7 +336,7 @@ namespace MWMechanics
                 return;
             }
 
-            /// end of dwemer coda ranged attack accuracy changes
+            // end of EncoreMP ranged attack accuracy changes
 
             const unsigned char* attack = weapon.get<ESM::Weapon>()->mBase->mData.mChop;
             damage = attack[0] + ((attack[1] - attack[0]) * attackStrength); // Bow/crossbow damage
@@ -386,12 +386,12 @@ namespace MWMechanics
         if (validVictim)
         {
 
-            /// start of dwemer coda arrow recovery changes
+            // start of EncoreMP arrow recovery changes
 
             int getmarksman = attacker.getClass().getSkill(attacker, weapon.getClass().getEquipmentSkill(weapon));
             
             // Non-enchanted arrows shot at enemies have a chance to turn up in their inventory
-            // dwemcod makes it so that enchanted arrows can too
+            // EncoreMP makes it so that enchanted arrows can too
 
             if (victim != getPlayer() && !appliedEnchantment)
             {
@@ -437,7 +437,7 @@ namespace MWMechanics
                     victim.getClass().getContainerStore(victim).add(projectile, 1, victim);
             }
 
-            /// end of dwemer coda arrow recovery changes
+            /// end of EncoreMP arrow recovery changes
 
             victim.getClass().onHit(victim, damage, true, projectile, attacker, hitPosition, true);
         }
@@ -486,7 +486,7 @@ namespace MWMechanics
                                     victimStats.getMagicEffects().get(ESM::MagicEffect::Invisibility).getMagnitude());
         }
 
-        /// start of dwemer coda hitchance changes
+        /// start of EncoreMP hitchance changes
 
         float attackTerm = 0.0f;
 
@@ -510,7 +510,7 @@ namespace MWMechanics
         }
 
 
-        /// end of dwemer coda hitchance changes
+        /// end of EncoreMP hitchance changes
 
         return round(attackTerm - defenseTerm);
     }
@@ -642,7 +642,7 @@ namespace MWMechanics
         static const float fDamageStrengthMult = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>()
                 .find("fDamageStrengthMult")->mValue.getFloat();
 
-        /// start of dwemer coda damage changes
+        /// start of EncoreMP damage changes
 
         if (attacker == getPlayer())
         {
@@ -790,13 +790,13 @@ namespace MWMechanics
                 (attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() * fDamageStrengthMult * 0.1f);
         }
 
-        /// end of dwemer coda damage changes
+        // end of EncoreMP damage changes
 
     }
 
     void getHandToHandDamage(const MWWorld::Ptr &attacker, const MWWorld::Ptr &victim, float &damage, bool &healthdmg, float attackStrength)
     {
-        //dwemcod hand to hand min damage change
+        // EncoreMP hand to hand min damage change
         const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
         float minstrike = store.get<ESM::GameSetting>().find("fMinHandToHandMult")->mValue.getFloat();
         float maxstrike = store.get<ESM::GameSetting>().find("fMaxHandToHandMult")->mValue.getFloat();
@@ -816,14 +816,14 @@ namespace MWMechanics
         int factorStrength = Settings::Manager::getInt("strength influences hand to hand", "Game");
         if (factorStrength == 1 || (factorStrength == 2 && !isWerewolf))
         {
-            //dwemcod, change str scaling to behave like weapon scaling does in core
+            // EncoreMP, change str scaling to behave like weapon scaling does in core
             float attackerStrength = attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified();
             float strengthMult = 1.0f;
             float strengthHolder = 50.0f;
             //redundant guarding?
             attackerStrength = std::max(1.0f, attackerStrength);
 
-            //this doesn't need to be two if statements, the logic is identical, collapse it down when I tidy the code
+            // this doesn't need to be two if statements, the logic is identical, collapse it down when I tidy the code
 
             if (attackerStrength > 50.0f)
             {

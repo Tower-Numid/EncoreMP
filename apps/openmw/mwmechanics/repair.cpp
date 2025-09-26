@@ -132,7 +132,7 @@ void Repair::repair(const MWWorld::Ptr &itemToRepair)
     float basepercent = (0.1f * pcStrength + 0.1f * pcLuck + armorerSkill) * fatigueTerm;
 
 
-    // dwemcod, new tool quality adjustments start
+    // EncoreMP, new tool quality adjustments start
 
     if (toolQuality > 1.0f)
     {

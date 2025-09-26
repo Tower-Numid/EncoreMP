@@ -1,31 +1,25 @@
 
 ```
-They retreated behind math, behind colour, behind the active principle itself.
-
-Baladas Demnevanni, 3E 427
+EncoreMP V0.80 beta release
 ```
 
 **What is this project?**
 
-This is an engine level re-work of many of Morrowinds core gameplay mechanics, forked from tes3mp. As a branch of tes3mp, this is also multiplayer compatible. 
+This is a gameplay mod to morrowind with changes made at the engine level. It has been forked from tes3mp. As a branch of tes3mp, this is multiplayer compatible. 
 
 It has been designed with maximum mod compatibility in mind, and most especially for full compatibility with the tamriel rebuilt project. It does this by changing as little as possible via the ESP file, and by making all the engine level changes as content agnostic as possible.
 
 **How is this different to other gameplay overhauls?**
 
-This project hosts almost all of it's changes in the games engine, not in an ESP file. So this should be compatible with almost all new content mods.
+This project hosts almost all of it's changes in the games engine, not in an ESP file. So this should be compatible with almost all new content mods. It adds no new content, and makes no graphical changes.
 
 **What is the tone of the overhaul?**
 
 This tries as much as possible not to break from the sprit of the original game. 
 
-There are some new mechanics, and a lot of balancing changes, but overall I want this to feel like the original Morrowind did twenty something years ago.
+There are some new mechanics, and a lot of balancing changes, but overall the aim is for this to feel like playing Morrowind did twenty something years ago when it came out.
 
-As a Beta version it is in need of playtesting and feedback, and the economy aspect is likely the most punishing change - but overall it is not meant to be harder just for the sake of it.
-
-**Does it actually have anything to do with the dwemer?**
-
-No, it's just an internal project name that stuck. There is no new content added, but there may be in the future as an optional extra ESP file.
+As a Beta version it is in need of playtesting and feedback, and currently the economy aspect is likely the most punishing change - but it is not meant to be harder just for the sake of it.
 
 **What does it change?**
 
@@ -61,15 +55,15 @@ This is a brief summary of the changes made, for more details see the mechanical
 - Enchanted weapons no longer display the "out of charge" message when you attack with them whist they are out of charge
 
 **Project version info**
-This is the first public (beta) release of dwemer coda/dwemcod: V0.80
+This is the first public (beta) release of EncoreMP: V0.80
 
-It requires the ESP file `dwemcodV080` to function as intended (this is for balance reasons, and due to some changes to how the GMSTs operate). See the ESP companion file for more details on these changes.
+It requires the ESP file `TODO` to function as intended (this is for balance reasons, and due to some changes to how the GMSTs operate). See the ESP companion file for more details on these changes.
 
-Hosted at: https://github.com/Tower-Numid/dwemercoda
+Hosted at: https://github.com/Tower-Numid/EncoreMP
 
-Discussion (feedback) page: https://github.com/Tower-Numid/dwemercoda/discussions
+Discussion (feedback) page: TODO
 
-Download link: https://github.com/Tower-Numid/dwemercoda/releases/tag/V0.80
+Download link: TODO
 
 # Mechanics changelog
 
@@ -673,7 +667,7 @@ A consequence of this is that the game now expects NPCs to only be using handcra
 - The sound played when repairing equipment with armorer's tools has been reduced to 50% the original volume
 	- It was way too loud
 - Enchanted weapons no longer display the "no-charge" message when their charge is depleted, and no longer play the "no-charge" sound effects either
-- The server and client have been recompiled (a big thanks to Skooma-Breath for their help with the server) so that they have different checksums. Dwemer coda clients and servers cannot connect to baseline versions of tes3mp
+- The server and client have been recompiled (a big thanks to Skooma-Breath for their help with the server) so that they have different checksums. EncoreMP clients and servers cannot connect to baseline versions of tes3mp
 
 
 # Known issues & Comments
@@ -716,7 +710,7 @@ A consequence of this is that the game now expects NPCs to only be using handcra
 	- That scenario however would have caused unusual behaviour anyway in open morrowind, due to the behind the scenes stuff
 
 **Server/Client visual checksum**
-- [ ] The checksum has been correctly changed for the server/client (so that dwemer coda clients/servers cannot connect to baseline tes3mp servers), but dwemer coda servers still display as "V0.8.1" in the server browsing UI. 
+- [ ] The checksum has been correctly changed for the server/client (so that EncoreMP clients/servers cannot connect to baseline tes3mp servers), but EncoreMP servers still display as "V0.8.1" in the server browsing UI. 
 - This was due to an issue with changing that user facing value - but it's a UI issue only
 
 # Compiling partner file

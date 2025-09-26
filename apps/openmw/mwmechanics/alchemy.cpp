@@ -138,7 +138,7 @@ void MWMechanics::Alchemy::updateEffects()
     if (countIngredients()<2 || mAlchemist.isEmpty() || mTools[ESM::Apparatus::MortarPestle].isEmpty())
         return;
 
-    //dwemer coda, ingredient value logic
+    // EncoreMP, ingredient value logic
     int numberIngredients = countIngredients();
 
     std::vector<int> ingredientValues;
@@ -164,7 +164,7 @@ void MWMechanics::Alchemy::updateEffects()
     for (int v : ingredientValues) sumIngredientValue += v;
     // add them all up into sumIngredientValue as an int
 
-    //dwemer coda end
+    // EncoreMP end
 
     // find effects
     std::set<EffectKey> effects (listEffects());
@@ -176,8 +176,8 @@ void MWMechanics::Alchemy::updateEffects()
     float priceMod = 0.0f;
     float multMod = 1.0f;
     
-    //average the ingredient values with guarding against 0s
-    //then work out benefit from tiers and apply, dwemer coda
+    // average the ingredient values with guarding against 0s
+    // then work out benefit from tiers and apply, EncoreMP
     if ((sumIngredientValue > 0) && (numberIngredients > 0))
     {
         averageIngredientValue = (sumIngredientValue / numberIngredients);
@@ -216,7 +216,7 @@ void MWMechanics::Alchemy::updateEffects()
     x += priceMod;
     x *= multMod;
 
-    // begin step down mortar effectiveness, dwemer coda
+    // begin step down mortar effectiveness, EncoreMP
     float mortarQuality = mTools[ESM::Apparatus::MortarPestle].get<ESM::Apparatus>()->mBase->mData.mQuality;
 
     float mortarModifier = 1.0f;
@@ -240,17 +240,17 @@ void MWMechanics::Alchemy::updateEffects()
 
     x *= mortarModifier;
 
-    // end step down mortar effectiveness, dwemer coda
+    // end step down mortar effectiveness, EncoreMP
 
     x *= MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>().find ("fPotionStrengthMult")->mValue.getFloat();
 
 
-    // potion value, with dwemer coda cap added
+    // potion value, with EncoreMP cap added
     mValue = static_cast<int> (
         x * MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>().find ("iAlchemyMod")->mValue.getFloat());
     mValue = std::min(mValue, sumIngredientValue);
 
-    // dwemer coda convert alchemyfactor to magicka budget
+    // EncoreMP convert alchemyfactor to magicka budget
 
     float potionMagickaBudget = (x / 6.0f);
 
@@ -279,26 +279,26 @@ void MWMechanics::Alchemy::updateEffects()
         if (fPotionT1DurMult<=0)
             throw std::runtime_error ("invalid gmst: fPotionT1DurMult");
 
-        // dwemer coda budget to effect converter start
+        // EncoreMP budget to effect converter start
 
         float vHolderOne = (potionMagickaBudget / magicEffect->mData.mBaseCost);
         vHolderOne *= 40.0f;
         float durHolder = sqrtf(vHolderOne);
         float magHolder = (durHolder / 2.0f);
 
-        //override duration to budget over two, if the effect has no magnitude
+        // override duration to budget over two, if the effect has no magnitude
         if (magicEffect->mData.mFlags & ESM::MagicEffect::NoMagnitude)
         {
             durHolder = (vHolderOne / 2.0f);
         }
 
-        //override magnitude to budget over two, if the effect has no duration
+        // override magnitude to budget over two, if the effect has no duration
         if (magicEffect->mData.mFlags & ESM::MagicEffect::NoDuration)
         {
             magHolder = (vHolderOne / 4.0f);
         }
 
-        // dwemer coda budget to effect converter end
+        // EncoreMP budget to effect converter end
 
         float magnitude = (magicEffect->mData.mFlags & ESM::MagicEffect::NoMagnitude) ?
             1.0f : magHolder;
@@ -425,7 +425,7 @@ void MWMechanics::Alchemy::addPotion (const std::string& name)
     for (TIngredientsIterator iter (beginIngredients()); iter!=endIngredients(); ++iter)
         if (!iter->isEmpty())
             newRecord.mData.mWeight += iter->get<ESM::Ingredient>()->mBase->mData.mWeight;
-    // new dwemcod weight logic begin
+    // new EncoreMP weight logic begin
     if (countIngredients() > 0)
     {
         newRecord.mData.mWeight /= countIngredients();
@@ -478,7 +478,7 @@ void MWMechanics::Alchemy::addPotion (const std::string& name)
 
 void MWMechanics::Alchemy::increaseSkill()
 {
-    //dwemcod, now unused
+    // EncoreMP, now unused
     mAlchemist.getClass().skillUsageSucceeded (mAlchemist, ESM::Skill::Alchemy, 0);
 }
 
@@ -735,7 +735,7 @@ MWMechanics::Alchemy::Result MWMechanics::Alchemy::create (const std::string& na
 MWMechanics::Alchemy::Result MWMechanics::Alchemy::createSingle ()
 {
 
-    //dwemer coda, sum ingredient values
+    // EncoreMP, sum ingredient values
     int numberIngredients = countIngredients();
     int sumIngredientValue = 0;
     for (TIngredientsIterator it = beginIngredients(); it != endIngredients(); ++it)
@@ -758,7 +758,7 @@ MWMechanics::Alchemy::Result MWMechanics::Alchemy::createSingle ()
         averageIngredientValue = static_cast<float>(sumIngredientValue) / static_cast<float>(numberIngredients);
     }
 
-    //dwemer coda sum value end
+    // EncoreMP sum value end
 
     if (beginEffects() == endEffects())
     {
@@ -767,11 +767,11 @@ MWMechanics::Alchemy::Result MWMechanics::Alchemy::createSingle ()
         return Result_RandomFailure;
     }
 
-    //dwemcod, increase base success chance
+    // EncoreMP, increase base success chance
     float successChance = 30.0f;
     successChance += ( getAlchemyFactor() / 1.5f);
 
-    //dwemcod, ingredients add to success chance
+    // EncoreMP, ingredients add to success chance
     float itemSuccessAddition = 0.0f;
 
     if (averageIngredientValue >= 10.0f)

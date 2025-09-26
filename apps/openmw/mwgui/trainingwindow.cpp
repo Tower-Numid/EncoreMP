@@ -111,7 +111,7 @@ namespace MWGui
 
         for (int i=0; i<3; ++i)
         {
-            //dwemercoda non linear pricing position two
+            // EncoreMP non linear pricing position two
 
             int price = static_cast<int>(pcStats.getSkill(skills[i].first).getBase());
 
@@ -204,7 +204,7 @@ namespace MWGui
         const MWWorld::ESMStore &store =
             MWBase::Environment::get().getWorld()->getStore();
 
-        //dwemercoda non linear pricing position one
+        // EncoreMP non linear pricing position one
 
         int price = pcStats.getSkill(skillId).getBase();
 

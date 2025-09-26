@@ -666,7 +666,7 @@ void MWWorld::InventoryStore::updateMagicEffects(const Ptr& actor)
                     // Try resisting each effect
                     params[i].mMultiplier = MWMechanics::getEffectMultiplier(effect.mEffectID, actor, actor);
 
-                    // Start of dwemercoda resistance caps
+                    // Start of EncoreMP resistance caps
 
                     float magcap = 0.4f;
 
@@ -729,7 +729,7 @@ void MWWorld::InventoryStore::updateMagicEffects(const Ptr& actor)
                         params[i].mMultiplier = std::max(magcap, params[i].mMultiplier);
                     }
 
-                    // End of dwemercoda resistance caps
+                    // End of EncoreMP resistance caps
 
                     ++i;
                 }

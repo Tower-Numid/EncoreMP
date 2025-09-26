@@ -48,7 +48,7 @@
 #include "weapontype.hpp"
 
 
-/// dwmer coda additions
+// EncoreMP additions
 
 #include "difficultyscaling.hpp"
 
@@ -208,7 +208,7 @@ namespace MWMechanics
             // Try resisting.
             float magnitudeMult = getEffectMultiplier(effectIt->mEffectID, target, caster, spell, &targetEffects);
 
-            // Start of dwemercoda resistance caps
+            // Start of EncoreMP resistance caps
 
             if (target == getPlayer())
             {
@@ -292,7 +292,7 @@ namespace MWMechanics
 
             }
 
-            // End of dwemercoda resistance caps
+            // End of EncoreMP resistance caps
 
             if (magnitudeMult == 0)
             {
@@ -307,47 +307,47 @@ namespace MWMechanics
                 float magnitude = effectIt->mMagnMin + Misc::Rng::rollDice(effectIt->mMagnMax - effectIt->mMagnMin + 1);
                 magnitude *= magnitudeMult;
 
-                /// dwemer coda enchantment on strike scaling begin
+                // EncoreMP enchantment on strike scaling begin
 
                 const MWWorld::Ptr player = MWMechanics::getPlayer();
 
                 int effectholder = effectIt->mEffectID;
 
-                /// spell effects are 14, 15, 16 elements, 18 drain health, 23 damage health, 27 poison and 86 absorb health
+                // spell effects are 14, 15, 16 elements, 18 drain health, 23 damage health, 27 poison and 86 absorb health
                 if (mEnchantmentType == ESM::Enchantment::WhenStrikes && target != player && caster == player && (effectholder == 14 || effectholder == 15 || effectholder == 16 || effectholder == 18 || effectholder == 23 || effectholder == 27 || effectholder == 86))
                 {
                     magnitude *= onstrikeDamageScale();
                 }
 
-                /// dwemer coda enchantment on strike scaling end
+                // EncoreMP enchantment on strike scaling end
 
-                /// dwemer coda castonce and whenused scaling begin
+                // EncoreMP castonce and whenused scaling begin
 
                 if ((mEnchantmentType == ESM::Enchantment::CastOnce || mEnchantmentType == ESM::Enchantment::WhenUsed) && target != player && caster == player && (effectholder == 14 || effectholder == 15 || effectholder == 16 || effectholder == 18 || effectholder == 23 || effectholder == 27 || effectholder == 86))
                 {
                     magnitude *= castenchantedDamagescale();
                 }
 
-                /// dwemer coda castonce and whenused scaling end
+                // EncoreMP castonce and whenused scaling end
 
-                /// dwemer coda general spellcasting start, for now it is using the same damage scale as enchanted items
+                // EncoreMP general spellcasting start, for now it is using the same damage scale as enchanted items
 
                 if (mSourceType == SourceType::Spell && target != player && caster == player && (effectholder == 14 || effectholder == 15 || effectholder == 16 || effectholder == 18 || effectholder == 23 || effectholder == 27 || effectholder == 86))
                 {
                     magnitude *= castenchantedDamagescale();
                 }
 
-                /// dwemer coda general spellcasting end
+                // EncoreMP general spellcasting end
 
 
-                /// dwemer coda magic damage taken begin
+                // EncoreMP magic damage taken begin
 
                 if (target == player && mCaster != player && !caster.isEmpty() && !reflected && caster.getClass().isActor() && (effectholder == 14 || effectholder == 15 || effectholder == 16 || effectholder == 18 || effectholder == 23 || effectholder == 27 || effectholder == 86))
                 {
                     magnitude *= magicdamagetaken();
                 }
 
-                /// dwemer coda magic damage taken end
+                // EncoreMP magic damage taken end
 
                 if (!target.getClass().isActor())
                 {
@@ -763,7 +763,7 @@ namespace MWMechanics
 
         const ESM::Enchantment* enchantment = MWBase::Environment::get().getWorld()->getStore().get<ESM::Enchantment>().find(enchantmentName);
 
-        ///dwemercoda 1 line addition
+        // EncoreMP 1 line addition
         mEnchantmentType = enchantment->mData.mType;    
 
         mStack = false;
@@ -862,7 +862,7 @@ namespace MWMechanics
 
     bool CastSpell::cast(const ESM::Potion* potion)
     {
-        // dwemer coda, potions no longer stack with copies of themself
+        // EncoreMP, potions no longer stack with copies of themself
 
         mSourceType = SourceType::Potion;
         mSourceName = potion->mName;
@@ -971,7 +971,7 @@ namespace MWMechanics
                 stats.getSpells().usePower(spell);
         }
 
-        //dwemer coda, more XP from high costed spells
+        // EncoreMP, more XP from high costed spells
 
         float xpMult = 1.0f;
         float spellCost = spell->mData.mCost;
@@ -985,7 +985,7 @@ namespace MWMechanics
         if (!mManualSpell && mCaster == getPlayer() && spellIncreasesSkill(spell))
             mCaster.getClass().skillUsageSucceeded(mCaster, spellSchoolToSkill(school), 0, xpMult);
 
-        //end of dwemer coda, more XP from high costed spells
+        // end of EncoreMP, more XP from high costed spells
 
 
         // A non-actor doesn't play its spell cast effects from a character controller, so play them here

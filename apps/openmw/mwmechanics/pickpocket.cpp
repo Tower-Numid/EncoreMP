@@ -30,7 +30,7 @@ namespace MWMechanics
 
     bool Pickpocket::getDetected(float valueTerm)
     {
-        //dwemcod, complete function overhaul to mirror pickpocketing UI window
+        // EncoreMP, complete function overhaul to mirror pickpocketing UI window
         float playerTerm = getChanceModifier(mThief);
 
         float itemValue = valueTerm;
@@ -73,14 +73,14 @@ namespace MWMechanics
         float fPickPocketMod = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>()
                 .find("fPickPocketMod")->mValue.getFloat();
         float valueTerm = fPickPocketMod * stackValue;
-        //dwemcod, changed GMST behaviour by removing 10x mult, now value is difficulty if GMST is 1
+        // EncoreMP, changed GMST behaviour by removing 10x mult, now value is difficulty if GMST is 1
 
         return getDetected(valueTerm);
     }
 
     bool Pickpocket::finish()
     {
-        //dwemcod, now the player will never be caught just from closing the window
+        // EncoreMP, now the player will never be caught just from closing the window
         return false;
     }
 

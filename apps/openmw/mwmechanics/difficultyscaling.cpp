@@ -20,16 +20,16 @@
 #include "actorutil.hpp"
 
 
-/// new dwemercoda difficulty tier function
+// new EncoreMP difficulty tier function
 int difficultyTier()
 {
-    /// openmw difficulty check, code preserved as I dont know what effects removing it could have
+    // openmw difficulty check, code preserved as I dont know what effects removing it could have
     int difficultySetting = Settings::Manager::getInt("difficulty", "Game");
     difficultySetting = std::min(difficultySetting, 500);
     difficultySetting = std::max(difficultySetting, -500);
 
 
-    /// difficulty is got from the local player info as per tes3mp change versus openmw and this overrides the openmw setting
+    // difficulty is got from the local player info as per tes3mp change versus openmw and this overrides the openmw setting
     difficultySetting = mwmp::Main::get().getLocalPlayer()->difficulty;
     difficultySetting = std::min(difficultySetting, 500);
     difficultySetting = std::max(difficultySetting, -500);
