@@ -1,5 +1,5 @@
 
-Note the section headings and version references are out of date in places - but the code changes shown are current, as is the reasoning behind them
+Note the section headings and version references are out of date in places - but the code changes shown are current (V0.8.0), as is the reasoning behind them
 
 # 3, Compiling Changelog
 All files changed:

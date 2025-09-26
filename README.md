@@ -1,11 +1,75 @@
 
 ```
-EncoreMP V0.80 beta release
+EncoreMP V0.80 beta release - Forked from tes3mp V0.8.1
 ```
 
-**What is this project?**
+This project, EncoreMP, is a fork of tes3mp (V0.8.1), https://github.com/TES3MP
 
-This is a gameplay mod to morrowind with changes made at the engine level. It has been forked from tes3mp. As a branch of tes3mp, this is multiplayer compatible. 
+Asides from the mechanical changes listed below, and the code changes detailed in the "EncoreMP V0.80 compiling notes" file, all of the code used in this project is unchanged from tes3mp.
+
+Information on the tes3mp project (V0.8.1) has been copied below verbatim from the tes3mp project readme, please support the original project if you enjoy this work:
+
+---
+
+TES3MP project information
+======
+
+Copyright (c) 2008-2015, OpenMW Team  
+Copyright (c) 2016-2022, David Cernat & Stanislav Zhukov
+
+TES3MP is a project adding multiplayer functionality to [OpenMW](https://github.com/OpenMW/openmw), an open-source game engine that supports playing "The Elder Scrolls III: Morrowind" by Bethesda Softworks.
+
+* TES3MP version: 0.8.1
+* OpenMW version: 0.47.0
+* License: GPLv3 with additional allowed terms (see [LICENSE](https://github.com/TES3MP/TES3MP/blob/master/LICENSE) for more information)
+
+Font Licenses:
+* DejaVuLGCSansMono.ttf: custom (see [files/mygui/DejaVuFontLicense.txt](https://github.com/TES3MP/TES3MP/blob/master/files/mygui/DejaVuFontLicense.txt) for more information)
+
+Project status
+--------------
+
+[Version changelog](https://github.com/TES3MP/TES3MP/blob/master/tes3mp-changelog.md)
+
+As of version 0.8.1, TES3MP is fully playable, providing very extensive player, NPC, world and quest synchronization, as well as state saving and loading, all of which are highly customizable via [serverside Lua scripts](https://github.com/TES3MP/CoreScripts).
+
+Remaining gameplay problems mostly relate to AI and the fact that clientside script variables need to be placed on a synchronization whitelist to avoid packet spam.
+
+TES3MP now also has a [VR branch](https://github.com/TES3MP/TES3MP/tree/0.8.1-vr) that combines its code with that of Mads Buvik Sandvei's [OpenMW VR](https://gitlab.com/madsbuvi/openmw).
+
+Donations
+---------------
+
+You can benefit the project by donating on Patreon to our two developers, [David Cernat](https://www.patreon.com/davidcernat) and [Koncord](https://www.patreon.com/Koncord), as well as by supporting [OpenMW](https://openmw.org).
+
+Contributing
+---------------
+
+Helping us with documentation, bug hunting and video showcases is always greatly appreciated.
+
+For code contributions, it's best to start out with modestly sized fixes and features and work your way up. There are so many different possible implementations of more major features – many of which would cause undesirable code or vision conflicts with OpenMW – that those should be talked over in advance with the existing developers before effort is spent on them.
+
+Feel free to contact the [team members](https://github.com/TES3MP/TES3MP/blob/master/tes3mp-credits.md) for any questions you might have.
+
+Getting started
+---------------
+
+* [Quickstart guide](https://github.com/TES3MP/TES3MP/wiki/Quickstart-guide)
+* [Steam group](https://steamcommunity.com/groups/mwmulti) and its [detailed FAQ](https://steamcommunity.com/groups/mwmulti/discussions/1/353916184342480541/)
+* [TES3MP section on OpenMW forums](https://forum.openmw.org/viewforum.php?f=45)
+* [Discord server](https://discord.gg/ECJk293)
+* [Subreddit](https://www.reddit.com/r/tes3mp)
+* [Known issues and bug reports](https://github.com/TES3MP/TES3MP/issues)
+
+# End of tes3mp project information
+
+---
+
+# EncoreMP Introduction
+
+**What is EncoreMP?**
+
+This is a gameplay modification to morrowind, with changes made at the engine level. It has been forked from tes3mp. As a branch of tes3mp, this is multiplayer compatible. 
 
 It has been designed with maximum mod compatibility in mind, and most especially for full compatibility with the tamriel rebuilt project. It does this by changing as little as possible via the ESP file, and by making all the engine level changes as content agnostic as possible.
 
@@ -61,9 +125,6 @@ It requires the ESP file `TODO` to function as intended (this is for balance rea
 
 Hosted at: https://github.com/Tower-Numid/EncoreMP
 
-Discussion (feedback) page: TODO
-
-Download link: TODO
 
 # Mechanics changelog
 
@@ -716,6 +777,7 @@ A consequence of this is that the game now expects NPCs to only be using handcra
 # Compiling partner file
 
 - If you are curious about the new code or how it was developed, have a look at the partner file "V0.80 Beta release compiling changes"
+- This is also a complete list of all changes made to the base tes3mp code, as requested in the original tes3mp license ammendments
 - These are some rough notes that need a lot of tidying, but in their current state they will still walk you through all of the changes made and often explain why they were done a certain way
 - Hopefully this can guide you through how to change the engine yourself if you are interested
 - Keep in mind this is a Beta version, the code (and comments) are not tidy!
