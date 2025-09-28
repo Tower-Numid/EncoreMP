@@ -21,6 +21,8 @@ Hosted at: https://github.com/Tower-Numid/EncoreMP
 
 Live release (V0.80) download page: https://github.com/Tower-Numid/EncoreMP/releases/tag/0.80  
 
+Discussion page: https://github.com/Tower-Numid/EncoreMP/discussions  
+
 **Contents**
 1. TES3MP project information
 2. Introduction to EncoreMP
