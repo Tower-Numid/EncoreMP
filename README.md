@@ -19,6 +19,8 @@ It requires the ESP file `EncoreMPV080` to function as intended (this is for bal
 
 Hosted at: https://github.com/Tower-Numid/EncoreMP
 
+Live release (V0.80) download page: https://github.com/Tower-Numid/EncoreMP/releases/tag/0.80  
+
 **Contents**
 1. TES3MP project information
 2. Introduction to EncoreMP
