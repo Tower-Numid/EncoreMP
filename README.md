@@ -477,6 +477,7 @@ Overall experience gain has been reduced at high skill levels. This was done to 
 ## 10, Armour rating adjustments (player and creatures)
 
 **Player: equipment derived armour ratings**
+
 For the three armour skills (heavy, light, and medium) the equation used to determine player armour values below skill level 30 has been adjusted to be less punishing
 
 * In the base game your armour rating from equipment is equal to the base armour rating of the item multiplied by (your armour skill / 30)
