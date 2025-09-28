@@ -11,7 +11,8 @@ Just about all of this needs playtesting, so feedback is greatly appreciated! Yo
 
 The tes3mp project information has been copied below from the V0.8.1 tes3mp project readme. If you enjoy this work, please support tes3mp and OpenMW.
 
-**EncoreMP project information**
+**EncoreMP project information**  
+
 This is the first public (beta) release of EncoreMP: V0.80
 
 It requires the ESP file `EncoreMPV080` to function as intended (this is for balance reasons, and due to some changes to how the GMSTs operate). See the ESP companion file for more details on these changes.
@@ -40,8 +41,8 @@ Hosted at: https://github.com/Tower-Numid/EncoreMP
 	16. Willpower buff
 	17. NPC spellcasting locked to base game effect costs
 	18. Miscellaneous changes
-4. V0.80 known issues & comments
-5. Partner files
+5. V0.80 known issues & comments
+6. Partner files
 
 
 
@@ -227,6 +228,7 @@ This version (V0.80) has been tuned for co-op multiplayer, so damage done is mor
 
 
 **Changing difficulty settings**
+
 The new difficulty tiers are controlled by the global difficulty score in the server config file as follows,
 
 | Server config value | Tier           |
@@ -597,6 +599,7 @@ The following changes have been made,
 This is a complete overhaul of the skill, changing nearly everything about it, but the end result is it still behaves in practise a lot like core alchemy.
 
 **Potion strength overhaul**
+
 This logic that determines potion strength was significantly changed from the base game to bring it in line with spellmaking costs. This helps balance potion making against other sources of magic, and prevents some unusual behaviour when spell effect costs are set very low or high in the ESP file.
 
 - Your alchemy factor is divided by 6 to determine an effect's 'magicka budget'
@@ -605,6 +608,7 @@ This logic that determines potion strength was significantly changed from the ba
 - The full magicka budget is given to each distinct effect in a potion, it is not spread out or shared between multiple effects. It is always an upside to have multiple positive effects in a single potion
 
 **Ingredient value now affects potion strength**
+
 The average value of the ingredients used to make a potion now affects the strength of the potion (by modifying your alchemy factor) as follows:
 - If the average value of the ingredients is below 5g, then your alchemy factor is reduced by 30%
 - From average ingredient values of 5g to 200g you receive a non-linear bonus to your alchemy factor:
