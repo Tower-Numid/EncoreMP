@@ -1,17 +1,19 @@
  
 # :gear: EncoreMP :gear:
 
-EncoreMP is a fork of tes3mp V0.8.1
+Welcome to EncoreMP, an engine level overhaul of many of Morrowind's core mechanics. 
 
-The original tes3mp project can be found here: https://github.com/TES3MP
+EncoreMP is a fork of tes3mp V0.8.1. The original tes3mp project is hosted here: https://github.com/TES3MP
 
 Asides from the mechanical changes listed in this file, and the code changes detailed in the "EncoreMP V0.80 compiling notes" file, all of the code used in this project is unchanged from tes3mp.
 
-Just about all of this needs playtesting, so feedback is greatly appreciated! You can leave comments on the project discussion page on Github.
+All of this needs playtesting, so feedback is greatly appreciated! You can leave comments on the project discussion page on Github.
 
 The tes3mp project information has been copied below from the V0.8.1 tes3mp project readme. If you enjoy this work, please support tes3mp and OpenMW.
 
-**EncoreMP project information**  
+  
+
+### **EncoreMP project information**  
 
 This is the first public (beta) release of EncoreMP: V0.80
 
@@ -23,7 +25,7 @@ Live release (V0.80) download page: https://github.com/Tower-Numid/EncoreMP/rele
 
 Discussion page: https://github.com/Tower-Numid/EncoreMP/discussions  
 
-**Contents**
+### **Contents**
 1. TES3MP project information
 2. Introduction to EncoreMP
 3. Mechanics changelog
@@ -100,7 +102,7 @@ Feel free to contact the [team members](https://github.com/TES3MP/TES3MP/blob/ma
 
 # [2] Introduction to EncoreMP
 
-**What is EncoreMP?**
+### **What is EncoreMP?**
 
 EncoreMP is a mechanical overhaul of many of the core features of Morrowind, with the changes made in the game engine. It has been forked from tes3mp and as a branch of tes3mp it is multiplayer compatible. 
 
@@ -108,42 +110,49 @@ EncoreMP has been designed with maximum mod compatibility in mind, and most espe
 
 It does this by changing as little as possible in the ESP file, and by making all the engine level changes as content agnostic as possible.
 
-**How is this different to other gameplay overhauls?**
+### **How is this different to other gameplay overhauls?**
 
-This project hosts almost all of its changes in the games engine, not in an ESP file. So this should be compatible with almost all mods that add new content. EncoreMP itself adds no new content, and makes no graphical changes.
+This project hosts almost all of its changes in the games engine, not in an ESP file. So it will be compatible with almost all mods that add new content. 
 
-**What is the tone of this overhaul?**
+EncoreMP itself adds no new content, and makes no graphical changes.
 
-This tries as much as possible not to break from the spirit of the original game, whilst balancing and updating some of the older and neglected mechanics. 
+### **What is the tone of this overhaul?**
 
-There are some new mechanical additions, and a lot of balancing changes, but overall the aim is for this to feel like playing Morrowind did twenty something years ago when it came out.
+EncoreMP tries as much as possible not to break from the spirit of the original game.
+
+There are mechanical additions and revisions to many of the core game systems, as well as a lot of balancing changes, but overall the aim is for this to feel like playing Morrowind did twenty something years ago when it came out.
 
 EncoreMP is recommended for someone who has played the base game, and is already familiar with the core mechanics.
 
-This is a beta version and is in need of playtesting and feedback. Currently the changes to the economy are likely the most punishing change - but they are not meant to be harder just for the sake of it.
+This is a beta version and is in need of playtesting and feedback. Currently the changes to the economy are likely the most punishing - but nothing is meant to be harder just for the sake of it. 
 
-**How do I play?**  
+The hope is that the changes collectively make under-utilised features of the original game more exciting and rewarding.
 
-If you already have a working copy of tes3mp anywhere on your computer, you are able to play EncoreMP without any further setup required. If not, see the installation instructions from the tes3mp quickstart guide on Github: https://github.com/TES3MP/TES3MP/wiki/Quickstart-guide
+### **How do I play?**  
 
-First download the release version of the project from Github (V0.80).
+If you already have a working copy of tes3mp on your computer then you are able to play EncoreMP without any further setup required (asides from copying the ESP file into your data files as below). 
 
-Then move the ESP file `EncoreMPV080` from the release download into Morrowind's 'data files' install folder, as you do with other ESP mod files. 
+If not, see the installation instructions from the tes3mp quickstart guide on Github: https://github.com/TES3MP/TES3MP/wiki/Quickstart-guide
 
-Then unzip the rar file and set your modlist via the openmw-launcher within, to match that required by the server. By default the server `requiredDataFiles` lists Morrowind, Tribunal, Bloodmoon, and EncoreMPV080.ESP. Other mod files are added to the server in the same way they are for tes3mp.
+Once you have installed a working version of tes3mp somewhere on your computer, all you need to do is:
 
-EncoreMP can then be played within the unzipped folder from anywhere on your computer.
+1. Download the release version of the project from Github (V0.80)    
+2. Move the ESP file `EncoreMPV080` from the release into Morrowind's 'data files' folder, as is done with other ESP mod files     
+3. Unzip the rar file `EncoreMP.V0.80.beta.rar`   
+4. Within that folder, set your modlist via the openmw-launcher to match that required by the server  
+   - 	By default the server `requiredDataFiles` lists Morrowind, Tribunal, Bloodmoon, and EncoreMPV080.ESP. However as with tes3mp any mods can be added to the server  
+5. EncoreMP can then be played within the unzipped folder from anywhere on your computer  
 
 
-**What does it change?**
+### **What does it change?**
 
 This is a brief summary of the changes made, for more details see the mechanical changelog below, not everything is listed here:
 
 (Unless stated, all mechanical changes affect the player only)
 
 **Skills:**
-- Enchanting has been overhauled and re-balanced, making enchanted scrolls is now viable
-- Alchemy has been overhauled and re-balanced
+- Enchanting has been overhauled - making scrolls is now viable, any item can hold a reasonable enchantment, the skill is more viable at low levels
+- Alchemy has been overhauled - you will make more sensible potions at all skill levels, and be rewarded for using rarer ingredients
 - Acrobatics now lets you climb! Past a certain point your acrobatics skill lets you climb steeper and steeper slopes, up to an 89° angle at high skill
 - Your weapon skills now contribute to your damage dealt, not just your hit chance, and weapon accuracy has been revised
 - Ranged weapons are more accurate, and higher ranged weapon skill helps you recover arrows more often
