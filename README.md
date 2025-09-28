@@ -23,24 +23,26 @@ Hosted at: https://github.com/Tower-Numid/EncoreMP
 1. TES3MP project information
 2. Introduction to EncoreMP
 3. Mechanics changelog
-	1. Climbing
-	2. New difficulty system
-	3. Enchanting overhaul
-	4. Experience gain adjustments
-	5. Training costs and skill book adjustments
-	6. Player resist magicka cap
-	7. Melee combat changes
-	8. Hand to hand combat changes
-	9. Ranged combat changes
-	10. Armour rating adjustments
-	11. Armorer overhaul
-	12. Mercantile overhaul
-	13. Alchemy overhaul
-	14. Pickpocketing overhaul
-	15. Athletics and swimming
-	16. Willpower buff
-	17. NPC spellcasting locked to base game effect costs
-	18. Miscellaneous changes
+   <ol type="1">
+	 <li>Climbing</li>
+	 <li>New difficulty system</li>
+     <li>Enchanting overhaul</li>
+     <li>Experience gain adjustments</li>
+     <li>Training costs and skill book adjustments</li>
+     <li>Player resist magicka cap</li>
+     <li>Melee combat changes</li>
+     <li>Hand to hand combat changes</li>
+     <li>Ranged combat changes</li>
+     <li>Armour rating adjustments</li>
+     <li>Armorer overhaul</li>
+     <li>Mercantile overhaul</li>
+     <li>Alchemy overhaul</li>
+     <li>Pickpocketing overhaul</li>
+     <li>Athletics and swimming</li>
+     <li>Willpower buff</li>
+     <li>NPC spellcasting locked to base game effect costs</li>
+     <li>Miscellaneous changes</li>
+	</ol>
 5. V0.80 known issues & comments
 6. Partner files
 
