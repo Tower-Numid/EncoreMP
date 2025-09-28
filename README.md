@@ -122,7 +122,14 @@ This is a beta version and is in need of playtesting and feedback. Currently the
 
 If you already have a working copy of tes3mp anywhere on your computer, you are able to play EncoreMP without any further setup required. If not, see the installation instructions from the tes3mp quickstart guide on Github: https://github.com/TES3MP/TES3MP/wiki/Quickstart-guide
 
-To play, download the release version of the project from Github (V0.80) and unzip the rar file as you would do with tes3mp. This file can be unzipped and played from anywhere on your computer. EncoreMP can then be played from within the folder you have just unzipped.
+First download the release version of the project from Github (V0.80).
+
+Then move the ESP file `EncoreMPV080` from the release download into Morrowind's 'data files' install folder, as you do with other ESP mod files. 
+
+Then unzip the rar file and set your modlist via the openmw-launcher within, to match that required by the server. By default the server `requiredDataFiles` lists Morrowind, Tribunal, Bloodmoon, and EncoreMPV080.ESP. Other mod files are added to the server in the same way they are for tes3mp.
+
+EncoreMP can then be played within the unzipped folder from anywhere on your computer.
+
 
 **What does it change?**
 
