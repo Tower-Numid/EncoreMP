@@ -271,6 +271,7 @@ namespace MWGui
             MyGUI::Gui::getInstance().destroyWidget(mSelected->button->getChildAt(0));
 
         mSelected->type = Type_Item;
+
         mSelected->id = item.getCellRef().getRefId();
         mSelected->name = item.getClass().getName(item);
 

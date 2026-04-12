@@ -14,6 +14,7 @@
 #include "actorutil.hpp"
 #include "creaturestats.hpp"
 
+
 namespace MWMechanics
 {
     ESM::Skill::SkillEnum spellSchoolToSkill(int school)
@@ -64,22 +65,22 @@ namespace MWMechanics
 
     int getEffectiveEnchantmentCastCost(float castCost, const MWWorld::Ptr &actor)
     {
-        /*
-         * Each point of enchant skill above/under 10 subtracts/adds
-         * one percent of enchantment cost while minimum is 1.
-         */
         int eSkill = actor.getClass().getSkill(actor, ESM::Skill::Enchant);
-
-        if (eSkill < 1)
-            eSkill = 1;
-        else if (eSkill > 200)
-            eSkill = 200;
-
-        int intPart = static_cast<int>(castCost * (0.67 / std::exp(eSkill * 0.004 * std::log(eSkill))));
-
-        const float result = intPart + 1 + (castCost / 3);
-
-        return static_cast<int>((result < 1) ? 1 : result);
+        MWWorld::Ptr player = MWMechanics::getPlayer();
+        if (actor == player)
+        {
+            //EncoreMP adjusted logic for the player only
+            eSkill = std::max(1, eSkill);
+            eSkill = std::min(100, eSkill);
+            const float result = castCost - (castCost*(eSkill*0.008));
+            return static_cast<int>((result < 1) ? 1 : result);
+        }
+        else
+        {
+            // original base game logic
+            const float result = castCost - (castCost / 100) * (eSkill - 10);
+            return static_cast<int>((result < 1) ? 1 : result);
+        }
     }
 
     float getBaseGameEffectCost(int effectID)

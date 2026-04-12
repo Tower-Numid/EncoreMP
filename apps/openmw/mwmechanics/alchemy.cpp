@@ -143,7 +143,7 @@ void MWMechanics::Alchemy::updateEffects()
 
     std::vector<int> ingredientValues;
 
-
+    // iterate over ingredients, guarding, get ID, add their value to the vector
     for (TIngredientsIterator it = beginIngredients(); it != endIngredients(); ++it)
     {
         if (it->isEmpty()) continue;
@@ -158,13 +158,13 @@ void MWMechanics::Alchemy::updateEffects()
 
         ingredientValues.push_back(value);
     }
-    // iterate over ingredients, guarding, get ID, add their value to the vector
 
+    // add them all up into sumIngredientValue as an int
     int sumIngredientValue = 0;
     for (int v : ingredientValues) sumIngredientValue += v;
-    // add them all up into sumIngredientValue as an int
 
-    // EncoreMP end
+    // EncoreMP end ingredient value logic
+
 
     // find effects
     std::set<EffectKey> effects (listEffects());
@@ -185,26 +185,42 @@ void MWMechanics::Alchemy::updateEffects()
         if (averageIngredientValue < 5.0f)
         {
             multMod = 0.7f;
+            if (averageIngredientValue > 0.1f)
+            {
+                multMod += (averageIngredientValue * 0.06f);
+            }
         }
         else if ((averageIngredientValue >= 5.0f) && (averageIngredientValue < 200.0f))
         {
-            // y = 64.46238 + (-293895.7 - 64.46238)/(1 + (x/3.767532e-32)^0.116272)
+            // y = (1057 + (-1119 / (1 + (x / 81302080000)^0.1137))
             // where y is skill boost, and x is ingredient value
 
-            float yf = 64.5f + (-293960.0f / (1.0f + std::powf(averageIngredientValue / 3.76e-32f, 0.11627f)));
+            float yf = 1057.0f + (-1119.0f / (1.0f + std::powf(averageIngredientValue / 81302080000.0f, 0.1137f)));
             priceMod += yf;
+
+            // handle the multmod for normal range, 5-200gp average value ingredients
+            multMod = 1.0f;
+            float addToMod = 0.0f;
+
+            // y = 22.87 + ((-47.5)/(1 + ((x/0.00000007014))^0.00415))
+            // where y is % modifier addition, and x is ingredient value
+
+            addToMod = 22.87f + (-47.5f / (1.0f + std::powf(averageIngredientValue / 0.00000007014f, 0.00415f)));;
+
+            multMod += addToMod;
+
         }
         else if (averageIngredientValue >= 200.0f)
         {
-            priceMod = 30.0f;
+            priceMod = 45.0f;
             float highValueHolder = (averageIngredientValue - 200.0f);
             highValueHolder /= 10.0f;
             priceMod += highValueHolder;
         }
 
-        if (averageIngredientValue >= 100.0f)
+        if (averageIngredientValue >= 200.0f)
         {
-            multMod = 1.1f;
+            multMod = 1.25f;
         }
     }
 
@@ -252,7 +268,7 @@ void MWMechanics::Alchemy::updateEffects()
 
     // EncoreMP convert alchemyfactor to magicka budget
 
-    float potionMagickaBudget = (x / 6.0f);
+    float potionMagickaBudget = (x / 4.0f);
 
 
     // build quantified effect list
@@ -286,16 +302,19 @@ void MWMechanics::Alchemy::updateEffects()
         float durHolder = sqrtf(vHolderOne);
         float magHolder = (durHolder / 2.0f);
 
-        // override duration to budget over two, if the effect has no magnitude
+        // override duration, if the effect has no magnitude, to be triple what is calculated above
+        // this is not triple the magicka cost, not even close, but it scales better
         if (magicEffect->mData.mFlags & ESM::MagicEffect::NoMagnitude)
         {
-            durHolder = (vHolderOne / 2.0f);
+            durHolder *= 3.0f;
         }
 
-        // override magnitude to budget over two, if the effect has no duration
+        // override magnitude to budget over six, if the effect has no duration
+        // e.g. dispel
+        // was originally over four, but the balance was off, this way you need middling skill to get 100% dispel potions
         if (magicEffect->mData.mFlags & ESM::MagicEffect::NoDuration)
         {
-            magHolder = (vHolderOne / 4.0f);
+            magHolder = (vHolderOne / 6.0f);
         }
 
         // EncoreMP budget to effect converter end
@@ -802,25 +821,34 @@ MWMechanics::Alchemy::Result MWMechanics::Alchemy::createSingle ()
 
     //reduction in XP from potions with avg ingredient values less than 5gp
     //to reduce the 1gp ingredient spamming
-    //even this might be too generous
+    //above 5gp the XP gained increases to 4x at 200gp+
     if (averageIngredientValue < 5.0f)
     {
         alchXpMod = 0.5f;
+        alchXpMod += (averageIngredientValue * 0.1f);
 
         if (alchemySkill > 30.0f)
         {
-            alchXpMod = 0.25f;
+            alchXpMod /= 2.0f;
         }
 
         if (alchemySkill > 60.0f)
         {
-            alchXpMod = 0.125f;
+            alchXpMod /= 2.0f;
         }
 
         if (alchemySkill > 90.0f)
         {
-            alchXpMod = 0.05f;
+            alchXpMod /= 2.0f;
         }
+    }
+    else if (averageIngredientValue <= 200.0f)
+    {
+        alchXpMod += (0.01 * averageIngredientValue);
+    }
+    else
+    {
+        alchXpMod = 3.0f;
     }
 
     mAlchemist.getClass().skillUsageSucceeded(mAlchemist, ESM::Skill::Alchemy, 0, alchXpMod);

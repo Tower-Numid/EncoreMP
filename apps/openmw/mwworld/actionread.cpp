@@ -47,6 +47,8 @@ namespace MWWorld
 
         if (ref->mBase->mData.mIsScroll)
             MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Scroll, getTarget());
+            //Encore, when the new flag is added to the quick keys chain, here fork the logic to if flag is true, return
+            //return;
         else
             MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Book, getTarget());
 

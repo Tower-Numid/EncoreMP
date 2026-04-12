@@ -877,6 +877,18 @@ namespace MWMechanics
                 }
                 return false;
             }
+
+            //EncoreMP, reduce cost of on-strike enchantments, V0.92
+            if (mCaster == getPlayer())
+            {
+                if (type == ESM::Enchantment::WhenStrikes)
+                {
+                    castCost *= 0.25;
+                    castCost = std::max(1, castCost);
+                }
+            }
+
+
             // Reduce charge
             item.getCellRef().setEnchantmentCharge(item.getCellRef().getEnchantmentCharge() - castCost);
         }

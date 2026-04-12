@@ -1,72 +1,488 @@
 
 # Compiling Changelog
-V0.91.    
+For the V0.92 release    
 
-A guide to the coding changes made, and the reasoning behind them. Useful if you want to change parts of the project yourself, or learn about the engine structure.        
+This is a guide to the coding changes made, and the reasoning behind them. Hopefully it's useful if you want to change parts of the project yourself, or learn about the engine structure.        
 
 Some sections are missing, this is intentional, they have been removed as they became obsolete.    
+
+## Table of contents
+
+1. Enchanting    
+2. XP gain    
+3. Trainig costs    
+4. Magic resist cap    
+5. Miscellanious changes     
+6. Melee changes    
+7. Ranged changes    
+8. Acrobatics and climbing    
+9. Difficuly overhaul (also see 29.)    
+10. Equipment derived armour ratings    
+11. Unarmored    
+12. Creature armour ratings    
+13. Armorer    
+14. Swimming    
+15. Removed - Obsolete Section    
+16. Mercantile    
+17. NPC spellcasting engine change    
+18. Alchemy    
+19. Removed - Obsolete Section    
+20. Removed - Obsolete Section    
+21. Variable spellcasting XP gain    
+22. Removed - Obsolete Section    
+23. Willpower changes    
+24. Removed - Obsolete Section    
+25. Hand to hand    
+26. Pickpocketing    
+27. Server checksum    
+28. Stealth    
+29. Ally difficulty scaling    
+30. Spell buying menus    
+31. New gameplay settings    
 
 
 ## 1, Enchanting
 `openmw\enchanting.cpp`
 `openmw\spellutil.cpp`
 
+**Effect of soul size**
+- Introduced variable XP gain based on soul size, scaling from 1.0x at 0 to 4.0x at 400+
+    - The logic linearly scales the XP multiplier between the values shown below:
+    - Soul size 0 - 60, 1.0f to 2.0f
+    - 60 - 180, 2.0f to 3.0f
+    - 180 - 400, 3.0f to 4.0f
+    - 400+ 4.0f flat (no further increase in XP gain)
+- Introduced a variable bonus to enchanting success rate (by effectively adding to the enchanting skill) based on soul size
+	- Scales linearly between these values:
+	- Soul size 0-30, from a +0 to a +5 modifier
+	- Soul size 30-60, from a +5 to a +10 modifier
+	- Soul size 60-120, from a +10 to a +15 modifier
+	- Soul size 120-180, from a +15 to a +20 modifier
+	- Soul size 180-400, from a +20 to a +30 modifier
+	- Soul size 400+, a flat +30 modifier
+
+**Item capacity**
 - Changed the enchanting capacity of items by altering the equation to generate on a curve by introducing a SQRT to the equation. No other changes involved, all relevant code is within the `int Enchanting::getMaxEnchantValue() const` function.
 	- Enchanting.cpp now requires `cmath` in the header to use the SQRT function.
 		- Relies on `cmath`
-	- There is a check to ensure that that SQRT equation will be skipped and instead 0 is returned, if the game detects an item has (somehow) got a capacity of -5 or less. The use of the SQRT would return unexpected behaviour in these situations otherwise. Should never be a problem if the game is being modded as intended (with values of 0 and above).
-- Added a 0.25x multiplier to on-hit item charge costs before they go into the on-use equation in `spellutil.cpp`, this function is hosted in `enchanting.cpp` as `int Enchanting::getEffectiveCastCost() const`
-	- Interaction with `spellutil.cpp`
-- Added various enchantment point cost modifiers to spell effects and spell schools, to allow independent balancing of spell effects from player spellmaking and alchemy
-	- Majority (all?) hosted in `float Enchanting::getEnchantPoints(bool precise) const`
-	- `const auto magicEffect = MWBase::Environment::get().getWorld()->getStore().get<ESM::MagicEffect>().find(effect.mEffectID);` required to function
-	- If check for cast when strikes, which doubles the enchantment point cost. Done for balancing reasons to position on-hit enchantments as having many more uses than in core, with lower potential damage. With other balancing implemented this caps enchantable damage at about 10-30 or 15-35, which rivals artefact damage output (such as Goldbrand, which does 10-30 fire damage per hit)
-	- If check for destruction and restoration schools, doubling their enchantment point cost for all items. Done for balancing reasons, to limit the players ability to spam healing or on touch damaging items with otherwise can trivialise the game
-		- Gets spell effect school via `int school = magicEffect->mData.mSchool;` and then checks for `if (school == 2 || school == 5)` which are destruction and restoration respectively. If either are found it doubles the point cost. This stacks with all other multipliers such as the cost increase for on-hit weapons
-	- If checks for specific spell effects implemented in the same way, in the format ` if (effenumid == 57 || effenumid == 74...` See mechanics changelog for which spells were adjusted in this way
-		- `int effenumid = effect.mEffectID;` in code block required to function
-		- These modifiers stack with the school and on-hit modifiers above. All modifiers stack unless otherwise noted. All implemented for balancing reasons.
+	- There is a check to ensure that that SQRT equation will be skipped and instead 0 is returned, if the game detects an item has (somehow) got a capacity of -5 or less. The use of the SQRT would return unexpected behaviour in these situations otherwise. Should never be a problem if the game is being modded as intended (with values of 0 and above)
+
+**On hit cost reduction**
+- Added a 0.25x multiplier to on-hit item charge costs before they go into the on-use equation
+- This change is made in `cast` in `spellcasting.cpp`
+
+```
+            //EncoreMP, reduce cost of on-strike enchantments, V0.92
+            if (mCaster == getPlayer())
+            {
+                if (type == ESM::Enchantment::WhenStrikes)
+                {
+                    castCost *= 0.25;
+                    castCost = std::max(1, castCost);
+                }
+            }
+```
+
+**School based cost modification**
+- Within `getEnchantPoints`
+    - All effects belonging to the destruction and restoration schools of magic have had their costs doubled when making any enchantments, to balance the power of enchanting and to give it a niche of "indirect" effects
+    - The effects "absorb health" and "absorb fatigue" also had their costs doubled for all enchantments, as they are the only other sources of direct damage
+
+```
+			if (magicEffect)
+			{
+				int school = magicEffect->mData.mSchool;
+                // EncoreMP, double the cost of all destruction and restoration enchants of any kind, for balance (stacks with on-strike mod)
+				if (school == 2 || school == 5)
+				{
+                    multpool *= 2.0f;
+				}
+                if (effenumid == 86 || effenumid == 88)
+                {
+                    //EncoreMP, also double the cost of absorb health/fatigue when enchanting, as they are the only other sources of direct damage not in destruction
+                    multpool *= 2.0f;
+                }
+			}
+```
+
+
+**Multiple effects no longer stack costs**
 - Restructured `getEnchantPoints()`, which determines the capacity/on-use cost of enchantments in a few ways
 	- Multiple enchantments on an item no longer cause the overall enchantment capacity to increase above the sum of the individual enchantments
 	- Previously in core morrowind, the cost of multiple enchantments on an item compounded. This is no longer the case, and now you can enchant an item with any number of seperate enchantments without introducing an additional cost multiplier
-- Enchanting difficulty (success chance) modified for each enchanting type, with the aim of broadly restricting enchantments beyond 20 points by making them disproportionately difficult
-	- See the entire `int Enchanting::getEnchantChance() const`. Extensively modified success rates by making difficulty increase in intervals at around 20 and beyond, and by making success rates higher when making low end enchantments (below 5 points)
-	- Otherwise however the actual core success rate equation is unchanged, it is still the one listed for open morrowind. All of the difficulty adjustments made are post-hoc, to the success rate generated by that equation
-	- `const float enchantpointsforpenalty = getEnchantPoints();` defined in block for point value checks
-	- `fEnchantmentConstantChanceMult` no longer used at all
-	- Code block on lines 547-549 is required to get the base skill of the players enchanting (ignoring buffs or drain/damage effects), which is used to determine constant effect success rate
-	- `"mechanicsmanagerimp.hpp"`, `"../mwclass/creature.hpp"`, and `"../mwworld/player.hpp"` were added to the header to get the base skill value (I'm not sure I needed to add them, this was early on and I pasted a whole block because I wasn't sure how to check yet)
-	- Constant effects now require a base (unmodified) enchanting skill of 75 to be made, any skill value below this has a 0% success chance. At 75 you can make up to 30 points of CE with guaranteed success rate, and above 30 the chance drops to 0% again. The amount you can make increased in 15 point increments for every 5 skill levels, reaching 90 CE points at 95 skill. At 100 skill all constant effect enchantments succeed regardless of point cost.
-	- On-use and on-strike effects are easier to make below 5 points, and become significantly harder beyond 20 and 25 points. 30 is a practical hard cap if you stay within the 200 max skill level allowed by the tes3mp server setup. You can get higher otherwise with buffs, but it was balanced around the assumption you won't.
-	- Cast-once (scrolls) use the same logic, but with an additional flat +25% success rate to position them as low level enchanting items (and to provide a practical way to train the skill when starting at very low skill levels)
-- Ammunition will now enchant in batches of 20 if the Openmw setting is turned on (set it to `0.5` just in case, but the behaviour should now be value independent as long as it is turned on at all, i.e. greater than 0 in the config file)
-	- Within `int Enchanting::getEnchantItemsCount() const`;
-		- `count = std::min(itemsInInventoryCount, std::max(1, 20));` replaces the previous check for the enchantment cost and the multiplier settings, fixing the number it will attempt at up to 20 if you are holding them
-	- Within `float Enchanting::getTypeMultiplier() const`
-		- Fixed to `return 0.05f;`, reducing difficulty by x20
-- Enchanting costs modified within `int Enchanting::getEnchantPrice() const` as described in the mechanics section. Very different behaviour to core.
+
+
+**On-use enchantments**
+- Enchanting difficulty modified
+	- For on-use enchantments, the base game logic is used with three modifications
+		- A flat invisible +5 to enchanting skill, to make low level enchanting slightly more reliable
+		- An 1.5 increase in cost for all enchantments that exceed 30 points in cost, but just for the portion that goes over 30 (e.g. a 35 cost enchantment now has an effective difficulty of 37.5)
+		- The success rate from soul size is added
+
+**Use Once (scrolls)**
+- Scrolls use half the enchanting capacity compared to all other enchantment types
+- Scrolls are much easier to make at low costs (around +40% success rate at costs 1-3). This bonus linearly decreases until at costs of 10 or more there is no bonus
+
+To halve the cost of enchantments on scrolls, this clause was added near the end of `getEnchantPoints`
+```
+//EncoreMP V0.92, halve all enchantment costs on scrolls
+if (mCastStyle == ESM::Enchantment::CastOnce)
+{
+    cost *= 0.5f;
+}
+```
+
+To add to the success rate for enchantment costs below 10 this clause was added to`getEnchantChance`
+```
+        //when used logic + cast once (scroll) logic
+        //comes before the float x = equation so that this value is modified by fatigue, GMST, etc
+        if (mCastStyle == ESM::Enchantment::WhenUsed || mCastStyle == ESM::Enchantment::CastOnce)
+        {
+            //small boost to generic success to smooth low levels
+            d += 5;
+            //add soul gem size bonus to success rate
+            d += enchantDifficultyMod;
+            //add a large boost for enchantments less than size 10, for scrolls only
+            if (mCastStyle == ESM::Enchantment::CastOnce)
+            {
+                if (enchantPointsHolder < 10)
+                {
+                    d += 40;
+                    d -= (enchantPointsHolder * 4);
+                }
+            }
+            // increase difficulty when enchanting capacity exceeds 30
+            // for every point over 30, add half its value again to the cost
+            if (enchantPointsHolder > 30)
+            {
+                float enchantPenaltyB = enchantPointsHolder - 30;
+                enchantPenaltyB *= 0.5;
+                enchantPointsHolder += enchantPenaltyB;
+            }
+        }
+```
+This adds +40, and removes 4 for every point, resulting in no bonus remaining at 10
+
+**On-Strike**
+- This uses the same logic as on-use enchantments do for difficulty
+- But all magic effects take up double capacity when used in an on-strike enchantment, for balance reasons
+
+
+**Ammunition**
+- Ammunition will now always enchant in batches of 20 and the OpenMW setting "projectiles enchant multiplier" has been disabled
+- Ammunition recieves the same difficulty boost that scrolls do when cost is below 10, otherwise it obeys the on-strike difficulty and capacity rules
+
+The server setting was commented out and the output was hardcoded to 0.05 for `getTypeMultiplier`
+```
+    float Enchanting::getTypeMultiplier() const
+    {
+        //static const bool useMultiplier = Settings::Manager::getFloat("projectiles enchant multiplier", "Game") > 0;
+        //disabled for EncoreMP V0.92
+        if (mWeaponType != -1 && getEnchantPoints() > 0)
+        {
+            ESM::WeaponType::Class weapclass = MWMechanics::getWeaponType(mWeaponType)->mWeaponClass;
+            if (weapclass == ESM::WeaponType::Thrown || weapclass == ESM::WeaponType::Ammo)
+                return 0.05f;
+        }
+
+        return 1.f;
+    }
+```
+The setting was disabled here as well, and now `getEnchantItemsCount` always returns up to 20 of an ammunition stack if it is avaliable
+```
+    int Enchanting::getEnchantItemsCount() const
+    {
+        int count = 1;
+        float enchantPoints = getEnchantPoints();
+        if (mWeaponType != -1 && enchantPoints > 0)
+        {
+            ESM::WeaponType::Class weapclass = MWMechanics::getWeaponType(mWeaponType)->mWeaponClass;
+            if (weapclass == ESM::WeaponType::Thrown || weapclass == ESM::WeaponType::Ammo)
+            {
+                //static const float multiplier = std::max(0.f, std::min(1.0f, Settings::Manager::getFloat("projectiles enchant multiplier", "Game")));
+                //disabled for EncoreMP V0.92
+                MWWorld::Ptr player = getPlayer();
+                int itemsInInventoryCount = player.getClass().getContainerStore(player).count(mOldItemPtr.getCellRef().getRefId());
+                count = std::min(itemsInInventoryCount, std::max(1, 20));
+            }
+        }
+
+        return count;
+    }
+```
+
+This block was added to `getEnchantChance` to account for enchanting less than 20 of an item, and to boost success rate when cost is below 10
+
+```
+        float typeMult = 1.0f;
+        const int itemCount = getEnchantItemsCount();
+
+        if (mWeaponType != -1)
+        {
+            //modify the per ammo difficulty to normalise it for all amounts of ammo
+            if (weapclass == ESM::WeaponType::Thrown || weapclass == ESM::WeaponType::Ammo)
+            {
+                typeMult = (1.0f / itemCount);
+                //add the same success rate for 10 and below that scrolls get, to make throwing weapons/ammo easier at low levels
+                if (enchantPointsHolder < 10)
+                {
+                    d += 40;
+                    d -= (enchantPointsHolder * 4);
+                }
+            }
+        }
+```
+
+
+**Constant effects**
+- Constant effect enchantments follow their own difficulty logic that scales off of the players base/unmodified enchanting skill
+	- All constant effect enchantments check base enchanting skill, and either have a 0% or 100% chance of succeeding, based on the size of the enchantment vs your enchanting skill
+	- [`A server setting has also been added which can toggle this feature off, and instead use base game constant effect enchanting logic`]
+- The player can make constant effect enchantments of up to the following sizes at these skill levels:
+	- Skill 59, no constant effect enchantments possible
+	- Skill 60, up to 5 points CE
+	- Skill 70, up to 15 points CE
+	- Skill 80, up to 35 points CE
+	- Skill 90, up to 65 points CE
+	- Skill 99, up to 101 points CE
+	- Skill 100, any sized constant effect enchantment
+- The logic linearly interoplates between these values
+
+Within `getEnchantChance`
+
+```
+        // get the lowest of base and modified skill, so that skill drain/damage is accounted for, but buffs to the skill are not
+        float skillForCE = std::min(baseEnchantForCE, modifiedEnchantForCE);
+        float allowedEnchantSize = 0.0f;
+        float skillOverHolder = 0.0f;
+
+
+        if (mCastStyle == ESM::Enchantment::ConstantEffect)
+        {
+            if (useEncoreConstantEffectLogic == true)
+            {
+                if (skillForCE < 60.0f)
+                {
+                    //always fail is skill is below 60
+                    x = 0;
+                }
+                else if (skillForCE >= 100.0f)
+                {
+                    //always succed when skill is 100
+                    x = 100;
+                }
+                else
+                {
+                    // calculate the allowed size you can make based on skill
+
+                    if (skillForCE < 70.0f)
+                    {
+                        allowedEnchantSize = 5.0f;
+                        skillOverHolder = (skillForCE - 60.0f);
+                        allowedEnchantSize += skillOverHolder;
+                    }
+                    else if (skillForCE < 80.0f)
+                    {
+                        allowedEnchantSize = 15.0f;
+                        skillOverHolder = (skillForCE - 70.0f);
+                        allowedEnchantSize += (2.0f * skillOverHolder);
+                    }
+                    else if (skillForCE < 90.0f)
+                    {
+                        allowedEnchantSize = 35.0f;
+                        skillOverHolder = (skillForCE - 80.0f);
+                        allowedEnchantSize += (3.0f * skillOverHolder);
+                    }
+                    else
+                    {
+                        allowedEnchantSize = 65.0f;
+                        skillOverHolder = (skillForCE - 90.0f);
+                        allowedEnchantSize += (4.0f * skillOverHolder);
+                    }
+
+                    //if allowed size is equal to or greater than the size you are trying to make, always suceed, else always fail
+                    if (allowedEnchantSize >= enchantPointsForCE)
+                    {
+                        x = 100;
+                    }
+                    else
+                    {
+                        x = 0;
+                    }
+                }
+            }
+            else
+            {
+                x *= fEnchantmentConstantChanceMult;
+            }
+```
 
 ---
 	`TES3MP\apps\openmw\spellutil.cpp`
-- Changed the on-use cost of enchanted items to involve a logarithm. Intentionally designed the equation to cap cost reduction to 1/3 (more for on-hit effects), and for there to be no penalty at 0 skill.
-	- Achieved by making changes to the `int getEffectiveEnchantmentCastCost` function
-	- An if check first caps skill player skill at 200, and floors it at 1, to stop unexpected behaviour with the log equation
-	- Then a log equation performs the new cost reduction
-	- This relies on the `std::log` function so `cmath` is now called in the header
-		- Relies on `cmath`
-	- Then a flat +1, and a flat +33% original cost are added to this value, providing absolute floors to the cost reduction
-	- The value is returned as INT, so some rounding will occur
-	- For gameplay reasons, on-hit effects are further reduced to about 25% of the value generated this way. This is handled in the `int Enchanting::getEffectiveCastCost() const` function in the `enchanting.cpp` file, which applies a 0.25 multiplier to the base cost value before it goes into the above equation.
-		- Interaction with `enchanting.cpp`
+**Charge cost reduction from skill**
+- The logic which governs how much the players enchanting skill reduces the cost of using/casting an enchantment was modified
+- In `getEffectiveEnchantmentCastCost` within `spellutil.cpp` this block was added
+
+```
+    int getEffectiveEnchantmentCastCost(float castCost, const MWWorld::Ptr &actor)
+    {
+        int eSkill = actor.getClass().getSkill(actor, ESM::Skill::Enchant);
+        MWWorld::Ptr player = MWMechanics::getPlayer();
+        if (actor == player)
+        {
+            //EncoreMP adjusted logic for the player only
+            eSkill = std::max(1, eSkill);
+            eSkill = std::min(100, eSkill);
+            const float result = castCost - (castCost*(eSkill*0.008));
+            return static_cast<int>((result < 1) ? 1 : result);
+        }
+        else
+        {
+            // original base game logic
+            const float result = castCost - (castCost / 100) * (eSkill - 10);
+            return static_cast<int>((result < 1) ? 1 : result);
+        }
+    }
+```
+- It forks the logic if the caster is the player, so this change does not affect NPCs
+- It caps the contribution from skill to 100, so enchanting past 100 provides no further benefit
+- The cost of using an enchantment scales linearly down from 99.2% at 1 skill, to 20% at 100 skill
+
+**Service costs**    
+Enchanting service costs have been modified, all changes have been made in `getEnchantPrice` within `enchanting.cpp`
+
+The function has been updated to:
+```
+   int Enchanting::getEnchantPrice() const
+   {
+       if(mEnchanter.isEmpty())
+           return 0;
+
+       // Encore, get enchantment points to allow cost modification
+       float enchantpointforcost = getEnchantPoints();
+
+       // Encore, apply a cost increase past 30 points, to mirror the new difficulty logic
+       if (mCastStyle == ESM::Enchantment::WhenUsed || mCastStyle == ESM::Enchantment::CastOnce || mCastStyle == ESM::Enchantment::WhenStrikes)
+       {
+           if (enchantpointforcost > 30.0f)
+           {
+               enchantpointforcost = (30.0f + ((enchantpointforcost - 30.0f)*1.5f));
+           }
+       }
+
+       // base game logic to calculate price, using enchantpointforcost now instead of getEnchantPoints()
+       float priceMultipler = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>().find("fEnchantmentValueMult")->mValue.getFloat();
+       int price = MWBase::Environment::get().getMechanicsManager()->getBarterOffer(mEnchanter, static_cast<int>(enchantpointforcost * priceMultipler), true);
+       price *= getEnchantItemsCount() * getTypeMultiplier();
+
+       // Encore, double the price for constant effects
+       if (mCastStyle == ESM::Enchantment::ConstantEffect)
+       {
+           price *= 2;
+       }
+
+       // Encore, lower scroll costs to 1/25th
+       if (mCastStyle == ESM::Enchantment::CastOnce)
+       {
+           price *= 0.04;
+       }
+
+       ESM::WeaponType::Class weapClass = MWMechanics::getWeaponType(mWeaponType)->mWeaponClass;
+
+       //Encore, lower ammunition costs to 1/20th
+       if (mCastStyle == ESM::Enchantment::WhenStrikes)
+       {
+           if (mWeaponType != -1)
+           {
+               if (weapClass == ESM::WeaponType::Thrown || weapClass == ESM::WeaponType::Ammo)
+               {
+                   price *= 0.05;
+               }
+           }
+       }
+
+       return std::max(1, price);
+   }
+```
+
+Summary of changes:
+- Constant effect enchantments are 2x GMST per point (GMST is 1000 by default, so a 100 point CE will now cost 200k gold before mercantile discounts apply)
+- On-use, on-strike, scrolls, and ammunition, all retain the base game costs up until 30 points of enchantment value, after 30 points each point costs 1.5x (to mirror the change to difficulty logic in making enchantments)
+	- e.g. for a 30 point enchantemnt you would pay 30k, for a 40 point enchantment you would pay 45k (because 10 of the capacity points are over 30, so 10*1.5 = 15, resulting in an effective cost of 45 points)
+- Scrolls are then discounted to 1/25th of the GMST value per point, so a 20 point scroll costs 800gp before mercantile discounts apply
+	- Note that scrolls use half the enchantment capacity compared to other items, so you are also getting a stronger effect for the equivalent point value
+- Ammunition is discounted to 1/20th of the GMST value per point, per stack of 20 ammunition
+	- So making 20 enchanted arrows with a 20 point enchantment would cost 1,000gp before mercantile discounts
+	- If you made e.g. only 10 arrows in one batch, the price would lower accordingly to 500gp
+
+**Bugfix: Ammunition no longer splits the charge of a soul gem**    
+- This was likely intentional, but given that ammunition enchanting was poorly implemented (if at all), I have changed it so that making a stack of 20 ammunition no longer splits the charge of the soul gem
+	- The issue was that you could make, e.g., 20 arrows using a size 5 soul, and the UI would then show the arrows as having "0/0" charge, as the actual charge value was less than 1 and being truncated to 0
+	- I do not think this had any affect on the ammunition themselves, during previous testing they would still trigger their on-hit abilities regardless of charge, but making this change cleaned up a UI bug
+
+Within the `create` function within `enchanting.cpp`
+
+This block
+```
+        if(mCastStyle==ESM::Enchantment::ConstantEffect)
+            enchantment.mData.mCharge = 0;
+        else
+            enchantment.mData.mCharge = getGemCharge() / count;
+```
+
+ was replaced with this
+```
+        if(mCastStyle==ESM::Enchantment::ConstantEffect)
+            enchantment.mData.mCharge = 0;
+        else
+            enchantment.mData.mCharge = getGemCharge();
+```
+So now each item of ammunition recieves the full charge of the soul gem
 
 ---
 
 
-## 1a, Fixing the enchanted item on-use bug I introduced
+## 2, XP gain
+`npcstats.cpp`
+- Changed the `useSkill` function to add a non-linear curve insertion of code block. Simply checks for players base skill level and reduces the XP gained by the multipliers shown in the mechanics changelog depending on level
+- Also changed the `getSkillProgressRequirement` function in `npcstats.cpp` to have a floor value of 20, so skills below 20 will still require 20xp to advance. Done by adding a `std:: max 20` pre-check function to the existing calculation
+- Added a new setting to the engine, `global XP gain multiplier` which is 1.0f by default
+- This is a float value which is multiplied by all XP earned for all skills
+- Good if you want to drag out the low levels and experience an epic TR game
 
+## 3, Training costs
+`trainingwindow.cpp`
+- `trainingwindow.cpp` modified in two locations as in section 1.1 work area 2 in such a way as to produce a non-linear increase in training costs for all skills whilst respecting the GMST. So the GMST setting of 10 can be doubled to 20, for example, and the non-linear price increases will also double uniformly.
+- Note that two edits were required (with duplicate code) as this file calculates the cost mechanically and the cost in the UI (training window) independently
+
+## 4, MR cap
+`spellcasting.cpp`
+`inventorystore.cpp`
+
+ - Magic resistance now has no mechanical effect beyond 60% (after accounting for weakness effects which negate it 1:1)
+ - Added a clause each to each of `spellcasting.cpp` and `inventorystore.cpp`. It was necessary for it to be formatted differently in each location, but the function is the same
+ - Had to manually define the list of effects which were to have their resistances capped
+	 - The reason was because I wanted not to cap the magnitude of resist magicka effects to avoid complicated changes to the UI and spell behaviour
+ - TGM is unaffected, it still gets full immunity due to the location this code change was positioned
+ - In `spellcasting.cpp` the `inflict` function was modified with a conditional check that caps magic resist for a pre-defined list of effects
+ - In `inventorystore.cpp` the `updateMagicEffects` function was modified with the same logic but formatted slightly differently as this file required
+ - The two changes were necessary as `inflict` in `spellcasting.cpp` covers all possible sources of negative effects except for constant effect enchantments, which are handled via the `inventorystore.cpp` code
+
+## 5, Miscellaneous changes and fixes
+`npcstats.cpp`
+`repair.cpp`
 `spellcasting.cpp`
 
- introduced a bug - the way I removed the "out of charge" message for on-hit effects resulted in it being removed from everything, but more than removing the message I appear to have removed the entire "stop" bit of the code - so as a result the game let's you cast enchanted items with 0 charge but they do nothing - however the entire animation plays, a bolt is generated, etc. So that's a problem that needs fixing, they need to register as out of charge still, go back and fix that
+- Skill books do not work at skill 90 and above anymore
+	- Added a single conditional clause that returns the function if the skill-up gain is from a book and the base skill is 90 or above. The relevant function is `increaseSkill` in `npcstats.cpp` under the `if (readBook)` check.
+	- Updated the `npcstats.cpp` file to include `settings.hpp` so that it can get settings
+	- Added a fork in the logic that disables this feature if the Boolean `skill books have level limit` if set to false in the server config file
+- Reduced the armorer sounds by changing the `repair` function within `repair.cpp` to play the sound at 0.5 instead of 1.0. 
+	- This has to be done twice, as the tes3mp also sends a packet with the same information for others to hear. Also whilst the original values (from openmw) are written as "1.0" (which makes them doubles), I had to manually define them as floats when changing this otherwise a type conversion error was called. No effect on gameplay or code behaviour, just worth noting as an implicit conversion that has been made explicit
+
+**Removing the out of charge message for empty on-strike weapons**    
+
+ A bug was introduced to EncoreMP - the way I removed the "out of charge" message for on-hit effects resulted in it being removed from everything, but more than removing the message I appear to have removed the entire "stop" bit of the code - so as a result the game let's you cast enchanted items with 0 charge but they do nothing - however the entire animation plays, a bolt is generated, etc. So that's a problem that needs fixing, they need to register as out of charge still, go back and fix that
 
 Current code in `spellcasting.cpp`
 ```
@@ -189,44 +605,7 @@ The result is that behaviour is unchanged for on-use items, but for on-strike it
 
 
 
-## 2, XP gain
-`npcstats.cpp`
-- [ ] XP gain changes
-- Changed the `useSkill` function to add a non-linear curve insertion of code block. Simply checks for players base skill level and reduces the XP gained by the multipliers shown in the mechanics changelog depending on level
-- Also changed the `getSkillProgressRequirement` function in `npcstats.cpp` to have a floor value of 20, so skills below 20 will still require 20xp to advance. Done by adding a `std:: max 20` pre-check function to the existing calculation
-- Added a new setting to the engine, `global XP gain multiplier` which is 1.0f by default
-- This is a float value which is multiplied by all XP earned for all skills
-- Good if you want to drag out the low levels and experience an epic TR game
 
-## 3, Training costs
-`trainingwindow.cpp`
-- [ ] Training costs
-- `trainingwindow.cpp` modified in two locations as in section 1.1 work area 2 in such a way as to produce a non-linear increase in training costs for all skills whilst respecting the GMST. So the GMST setting of 10 can be doubled to 20, for example, and the non-linear price increases will also double uniformly.
-- Note that two edits were required (with duplicate code) as this file calculates the cost mechanically and the cost in the UI (training window) independently
-
-## 4, MR cap
-`spellcasting.cpp`
-`inventorystore.cpp`
-
- - [ ] Magic resistance now has no mechanical effect beyond 60% (after accounting for weakness effects which negate it 1:1)
- - Added a clause each to each of `spellcasting.cpp` and `inventorystore.cpp`. It was necessary for it to be formatted differently in each location, but the function is the same
- - Had to manually define the list of effects which were to have their resistances capped
-	 - The reason was because I wanted not to cap the magnitude of resist magicka effects to avoid complicated changes to the UI and spell behaviour
- - TGM is unaffected, it still gets full immunity due to the location this code change was positioned
- - In `spellcasting.cpp` the `inflict` function was modified with a conditional check that caps magic resist for a pre-defined list of effects
- - In `inventorystore.cpp` the `updateMagicEffects` function was modified with the same logic but formatted slightly differently as this file required
- - The two changes were necessary as `inflict` in `spellcasting.cpp` covers all possible sources of negative effects except for constant effect enchantments, which are handled via the `inventorystore.cpp` code
-
-## 5, Miscellaneous changes and fixes
-`npcstats.cpp`
-`repair.cpp`
-
-- Skill books do not work at skill 90 and above anymore
-	- Added a single conditional clause that returns the function if the skill-up gain is from a book and the base skill is 90 or above. The relevant function is `increaseSkill` in `npcstats.cpp` under the `if (readBook)` check.
-	- Updated the `npcstats.cpp` file to include `settings.hpp` so that it can get settings
-	- Added a fork in the logic that disables this feature if the Boolean `skill books have level limit` if set to false in the server config file
-- Reduced the armorer sounds by changing the `repair` function within `repair.cpp` to play the sound at 0.5 instead of 1.0. 
-	- This has to be done twice, as the tes3mp also sends a packet with the same information for others to hear. Also whilst the original values (from openmw) are written as "1.0" (which makes them doubles), I had to manually define them as floats when changing this otherwise a type conversion error was called. No effect on gameplay or code behaviour, just worth noting as an implicit conversion that has been made explicit
 ## 6, Melee changes
 `npc.cpp`
 `combat.cpp`
@@ -258,15 +637,15 @@ The result is that behaviour is unchanged for on-use items, but for on-strike it
 ## 7, Ranged changes
 `combat.cpp`
 **Accuracy**
-- [ ] Ranged attacks follow the same accuracy change logic as implemented for melee, as determined in the `getHitChance` function within `combat.cpp`
+- Ranged attacks follow the same accuracy change logic as implemented for melee, as determined in the `getHitChance` function within `combat.cpp`
 	- In addition within the `projectileHit` function in `combat.cpp` ranged attacks are there given a flat +20 to hit, for balancing reasons (they are intended to be more accurate to make up for missed shots due to poor aim)
 
 **Damage**
-- [ ] Bows and crossbows have their damage modified to function similar to melee, increasing with skill and attribute, but they use agility as their damage attribute instead of strength. This is done in the `adjustWeaponDamage` function within `combat.cpp`
-- [ ] Throwing scales differently, and uses strength and skill to determine damage. These are weighted equally as with melee, but the damage scaling for throwing progresses linearly from 0-100 to a higher cap of 200% weapon damage instead of 150% at 100 strength and 100 skill. Given that throwing weapons do 2x the stated damage, this means at max strength and skill throwing weapons do 4x the stated damage. This is also done in the `adjustWeaponDamage` function within `combat.cpp`
+- Bows and crossbows have their damage modified to function similar to melee, increasing with skill and attribute, but they use agility as their damage attribute instead of strength. This is done in the `adjustWeaponDamage` function within `combat.cpp`
+- Throwing scales differently, and uses strength and skill to determine damage. These are weighted equally as with melee, but the damage scaling for throwing progresses linearly from 0-100 to a higher cap of 200% weapon damage instead of 150% at 100 strength and 100 skill. Given that throwing weapons do 2x the stated damage, this means at max strength and skill throwing weapons do 4x the stated damage. This is also done in the `adjustWeaponDamage` function within `combat.cpp`
 
 **Ammunition Recovery**
-- [ ] Both enchanted and non-enchanted ammo recovery are handled via the `projectileHit` function within `combat.cpp` which has been modified
+- Both enchanted and non-enchanted ammo recovery are handled via the `projectileHit` function within `combat.cpp` which has been modified
 	- The function now checks player skill and uses it to multiply the GMST ammo recovery value. For non-enchanted the recovery rate cannot be less than 1x GMST, at from 25 to 100 it scales linearly up to 4x GMST (every 25 skill is another 1x GMST, it increments at each skill level as this is processed as a float)
 	- The same function also allows for enchanted ammo recovery, but this only becomes possible at 50 skill and above. You start at 0 recovery rate at 50 skill, and each level beyond 50 adds 1/25th of the GMST recovery rate, so every 25 levels adds another 1x GMST up to 2x GMST total at 100 skill. This function hard caps the players skill it checks at 100 before processing, so there is no way to achieve beyond 2x GMST recovery rate.
 
@@ -279,14 +658,14 @@ The `static bool isWalkableSlope` logic within `movementsolver.hpp` was updated 
 
 The climbing angle is hard capped at 89° to minimise the risk of unusual behaviour (90° proved to cause some unusual behaviour during testing that would require a more extensive change to the movement logic).
 
- - [ ] This change adjust the criteria for the engine to determine the boolean `iswalkableslope` and restricts it to the player
- - [ ] There is not effect on the default value (47°) at 30 skill or below, and no benefit beyond 92 base skill (the angle you can climb to is hard capped to 89° for compatibility reasons)
- - [ ] Increasing the angle to 90° (or beyond) does not allow true wall climbing, due to separate logic checks in the openmw engine that exist  to prevent wall collision/sticking
-	 - [ ] I did not attempt to resolve this, as this would require a more extensive rework of the physics engine which would further risk compatibility with new content.
-	 - [ ] In short, whilst wall climbing is technically possible with some changes it meant (in the version I trialled) that you "stuck" to every wall you touched, which meant your speed slowed down to a crawl as you attempted to being moving vertically up it at greatly reduced speed, which was a huge problem in many urban areas and most interiors
-- [ ] The `sMaxSlope` variable is seemingly not accessible to the compiler (47° - is it in the ESM file?) but it can be worked around in the way I have done without issues.
-- [ ] There remain risks of floor detection failing when climbing, or clipping through ceilings, this will be investigated as playtesting continues.
-- [ ] Several functions within `movementsolver.cpp` call the Boolean `iswalkableslope`, these have been checked for unintended knock-on effects, and of the functions within the `cpp` file there are only two are of potential concern (although no issues have been seen yet during playtesting)
+ - This change adjust the criteria for the engine to determine the boolean `iswalkableslope` and restricts it to the player
+ - There is not effect on the default value (47°) at 30 skill or below, and no benefit beyond 92 base skill (the angle you can climb to is hard capped to 89° for compatibility reasons)
+ - Increasing the angle to 90° (or beyond) does not allow true wall climbing, due to separate logic checks in the openmw engine that exist  to prevent wall collision/sticking
+	 - I did not attempt to resolve this, as this would require a more extensive rework of the physics engine which would further risk compatibility with new content.
+	 - In short, whilst wall climbing is technically possible with some changes it meant (in the version I trialled) that you "stuck" to every wall you touched, which meant your speed slowed down to a crawl as you attempted to being moving vertically up it at greatly reduced speed, which was a huge problem in many urban areas and most interiors
+- The `sMaxSlope` variable is seemingly not accessible to the compiler (47° - is it in the ESM file?) but it can be worked around in the way I have done without issues.
+- There remain risks of floor detection failing when climbing, or clipping through ceilings, this will be investigated as playtesting continues.
+- Several functions within `movementsolver.cpp` call the Boolean `iswalkableslope`, these have been checked for unintended knock-on effects, and of the functions within the `cpp` file there are only two are of potential concern (although no issues have been seen yet during playtesting)
 	- `osg::Vec3f MovementSolver::traceDown` beginning on line 80, but the bool starts getting called around line 106
 		- I have no idea what the ray tracing logic does here, but it seems only to be involved in whether you can walk or not on a slope (so probably the actual post-hoc function that is implementing this change)
 		- But since it involves ray tracing and ground offset there could be some object detection/collision issues that result in clipping(none seen yet during testing)
@@ -965,7 +1344,7 @@ the fix was to change it to
 - so that instead it looks for effects locally originating from the player, regardless of the original source, and so now it includes all reflected effects and properly steps them down on high difficulties
 
 
-## 9a Elemental shield damage scaling bug
+### 9.9, Elemental shield damage scaling bug
 
 Elemental shield was, up until V0.40 (pre public release), still operating off of the base game damage scaling function, and so was being scaled as if it were melee damage.
 
@@ -2913,8 +3292,8 @@ This system gets the average value of all ingredients used in a potion, and incr
     float priceMod = 0.0f;
     float multMod = 1.0f;
     
-    //average the ingredient values with guarding against 0s
-    //then work out benefit from tiers and apply
+    // average the ingredient values with guarding against 0s
+    // then work out benefit from tiers and apply, EncoreMP
     if ((sumIngredientValue > 0) && (numberIngredients > 0))
     {
         averageIngredientValue = (sumIngredientValue / numberIngredients);
@@ -2922,26 +3301,42 @@ This system gets the average value of all ingredients used in a potion, and incr
         if (averageIngredientValue < 5.0f)
         {
             multMod = 0.7f;
+            if (averageIngredientValue > 0.1f)
+            {
+                multMod += (averageIngredientValue * 0.06f);
+            }
         }
         else if ((averageIngredientValue >= 5.0f) && (averageIngredientValue < 200.0f))
         {
-            // y = 64.46238 + (-293895.7 - 64.46238)/(1 + (x/3.767532e-32)^0.116272)
+            // y = (1057 + (-1119 / (1 + (x / 81302080000)^0.1137))
             // where y is skill boost, and x is ingredient value
 
-            float yf = 64.5f + (-293960.0f / (1.0f + std::powf(averageIngredientValue / 3.76e-32f, 0.11627f)));
+            float yf = 1057.0f + (-1119.0f / (1.0f + std::powf(averageIngredientValue / 81302080000.0f, 0.1137f)));
             priceMod += yf;
+
+            // handle the multmod for normal range, 5-200gp average value ingredients
+            multMod = 1.0f;
+            float addToMod = 0.0f;
+
+            // y = 22.87 + ((-47.5)/(1 + ((x/0.00000007014))^0.00415))
+            // where y is % modifier addition, and x is ingredient value
+
+            addToMod = 22.87f + (-47.5f / (1.0f + std::powf(averageIngredientValue / 0.00000007014f, 0.00415f)));;
+
+            multMod += addToMod;
+
         }
         else if (averageIngredientValue >= 200.0f)
         {
-            priceMod = 30.0f;
+            priceMod = 45.0f;
             float highValueHolder = (averageIngredientValue - 200.0f);
             highValueHolder /= 10.0f;
             priceMod += highValueHolder;
         }
 
-        if (averageIngredientValue >= 100.0f)
+        if (averageIngredientValue >= 200.0f)
         {
-            multMod = 1.1f;
+            multMod = 1.25f;
         }
     }
 
@@ -2955,24 +3350,27 @@ This system gets the average value of all ingredients used in a potion, and incr
 ```
 
 Summary of changes
-- If the average value of alchemy ingredients used is less than 5g, take a -30% penalty to your alchemy factor
-- If the average value is,
-- 5-10g, gain between a +10 and a +15 bonus to your effective alchemy skill
-- 10-25g, gain between a +15 and a +20 bonus
-- 25-100g, gain between a +20 and a +25 bonus
-- 100-200g, gain between a +25 and a +30 bonus, along with an additional 10% bonus to alchemy factor after the addition
-- 200g+, gain a +30 up to a (average value of items - 200) / 10 bonus to your alchemy skill, so e.g. at 200 you gain +30, at 300 you gain +40, etc (there are very few ingredients even in TR that exceed 200, so this is an edge case and a reward if you decide to use something really valuable for a one shot potion. Still probably not worth it though!)
-	- In addition, as with the 100-200g range, gain an additional 10% bonus to alchemy factor after the addition
+- Ingredient value now adds a flat bonus to your alchemy factor, and determines a % modifier to final potion strength
+- % Modifier logic
+	- Below average values of 5, you get no bonus to alchemy factor, and a % modifier penalty that scales from 70% of base strength at 0gp value average, linearly up to 100% of base strength at 5gp average
+	- From 5gp to 200gp the % modifier scales non-linearly to produce the values below on a continous scale
+		- 5gp, 1x
+		- 10gp, 1.05x
+		- 25gp, 1.10x
+		- 100gp, 1.15x
+		- 199gp, 1.20x
+	- Above 200gp the modifier is set to a flat 1.25x
+- Flat modifier
+	- Below 5gp there is no bonus to alchemy factor
+	- From 5 to 200gp the modifier is governed by a non-linear equation that results in these sample values
+		- 5gp, +10
+		- 10gp, +15
+		- 25gp, +25
+		- 100gp, +35
+		- 200gp, +45
+	- Past 200gp a new rule kicks in,
+		- Start at +45 and gain +10 for every additional 100gp of item value
 
-Up to 200, this is governed by a non-linear line equation, which is simplified in the above code from
-```
-y = 64.46238 + (-293895.7 - 64.46238)/(1 + (x/3.767532e-32)^0.116272)
-```
-
-The overall effect is that
-- Using cheap (sub 5g value) ingredients results in weaker potions at all skill levels
-- Using more expensive in ingredients results in stronger potions, which is most notable at low levels
-- The highest values of ingredients, an average of 100g+, adds a flat +10% modifier in addition at a flat skill boost, so that even at very high skill/factor they have an effect
 
 ### 18.5, Reduce the impact of the mortar
 `alchemy.cpp`
@@ -3025,11 +3423,11 @@ The aim here was to make mortar quality above or below 1.0 have 50% less of an e
 
 **Part one, converting alchemy factor into a magicka budget**
 
-Magicka budget = alchemy factor / 6
+Magicka budget = alchemy factor / 4
 
-Reasoning: you cannot reasonably have an alchemy factor of less than 12 (skill 5, intelligence 30, luck 40), so you will always start with a minimum potion spell cost equivalent of 2.
+Reasoning: you cannot reasonably have an alchemy factor of less than 12 (skill 5, intelligence 30, luck 40), so you will always start with a minimum potion spell cost equivalent of 3
 
-So at 100 alchemy, luck, and intelligence, you will be making 20 magicka costed potions (assuming you don't have fancy tools by then, which you will)
+So at 100 alchemy, luck, and intelligence, you will be making 30 magicka costed potions (assuming you don't have fancy tools by then, which you will)
 
 **Base game behaviour**
 
@@ -3044,7 +3442,7 @@ Other than that, the rest of the function is applying the tools (which multiply 
 
 **New behaviour**
 ```
-float potionMagickaBudget = (x / 6.0f);
+float potionMagickaBudget = (x / 4.0f);
 
 float vHolderOne = (potionMagickaBudget / magicEffect->mData.mBaseCost);
 vHolderOne *= 40.0f;
@@ -3057,12 +3455,12 @@ float magnitude = (magicEffect->mData.mFlags & ESM::MagicEffect::NoMagnitude) ?
 float duration = (magicEffect->mData.mFlags & ESM::MagicEffect::NoDuration) ?
             1.0f : durHolder;
 ```
-- Divides alchemy factor by 6 to get a magicka budget
+- Divides alchemy factor by 4 to get a magicka budget
 - Uses the above equation to 'spend' the magicka budget of the alchemy result equally on duration and magnitude, as if you were casting an equivalent spell made with the spellmaking system
 
 **If the potion effect is missing either it's magnitude or duration**
 
-Some effects like water walking have a fixed magnitude of 1, so to properly mirror the spellmaking logic a fork in the above calculations has been added to account for this.
+Some effects like water walking have a fixed magnitude of 1, so alternative logic is used to calculate their strenth. Overall this logic results in them being weaker than the equivalent magicka costed spells being cast, but this was the best compromise that resulted in smooth scaling for all effect cost values.
 
 Went back to the original magnitude/duration budgeting code and did this,
 ```
@@ -3073,16 +3471,19 @@ Went back to the original magnitude/duration budgeting code and did this,
         float durHolder = sqrtf(vHolderOne);
         float magHolder = (durHolder / 2.0f);
 
-        //override duration to budget over two, if the effect has no magnitude
+        // override duration, if the effect has no magnitude, to be triple what is calculated above
+        // this is not triple the magicka cost, not even close, but it scales better
         if (magicEffect->mData.mFlags & ESM::MagicEffect::NoMagnitude)
         {
-            durHolder = (vHolderOne / 2.0f);
+            durHolder *= 3.0f;
         }
 
-        //override magnitude to budget over two, if the effect has no duration
+        // override magnitude to budget over six, if the effect has no duration
+        // e.g. dispel
+        // was originally over four, but the balance was off, this way you need middling skill to get 100% dispel potions
         if (magicEffect->mData.mFlags & ESM::MagicEffect::NoDuration)
         {
-            magHolder = (vHolderOne / 4.0f);
+            magHolder = (vHolderOne / 6.0f);
         }
 
         // EncoreMP budget to effect converter end
@@ -3242,10 +3643,11 @@ Only the `std::min` addition was new by me. It uses the sum ingredient value var
 - This is a harsh cap, and means that you can never make money from alchemy by mass buying and processing ingredients. But this was intentional, to stop any exploitative gameplay loops.
 	- The only problem with this first version, is that it is not realistic. You should be able to make money selling powerful healing potions, people would be willing to pay more than the base ingredients are worth. So this is something to revisit after some playtesting.
 
-### 18.9, Reducing XP gained from cheap ingredient potions
+### 18.9, Modifying XP gain based on ingredient cost
 `alchemy.cpp`
 
-Aim: XP gain from making a potion scales with either average item value, or sum item value, or there is just a penalty below a certain value and skill. In essence, I want to make spamming 1g potions non-viable past a certain point, and I want to reward using high value ingredients in potions with more XP.
+- Added reduced XP logic when average value is below 5gp, to incentivize using uncommon/expensive ingredients
+- Increased XP gain from expensive ingredients, up to 3x when the average value is 200gp
 
 The base function which adds to player skill is
 
@@ -3267,37 +3669,49 @@ Then it does this
 
     //reduction in XP from potions with avg ingredient values less than 5gp
     //to reduce the 1gp ingredient spamming
-    //even this might be too generous
+    //above 5gp the XP gained increases to 4x at 200gp+
     if (averageIngredientValue < 5.0f)
     {
         alchXpMod = 0.5f;
+        alchXpMod += (averageIngredientValue * 0.1f);
 
         if (alchemySkill > 30.0f)
         {
-            alchXpMod = 0.25f;
+            alchXpMod /= 2.0f;
         }
 
         if (alchemySkill > 60.0f)
         {
-            alchXpMod = 0.125f;
+            alchXpMod /= 2.0f;
         }
 
         if (alchemySkill > 90.0f)
         {
-            alchXpMod = 0.05f;
+            alchXpMod /= 2.0f;
         }
+    }
+    else if (averageIngredientValue <= 200.0f)
+    {
+        alchXpMod += (0.01 * averageIngredientValue);
+    }
+    else
+    {
+        alchXpMod = 3.0f;
     }
 
     mAlchemist.getClass().skillUsageSucceeded(mAlchemist, ESM::Skill::Alchemy, 0, alchXpMod);
     //increaseSkill();
+
+    return Result_Success;
+}
 ```
 
-The end result is that,
-If average potion ingredient value is less than 5gp,
-- You earn 50% of the normal XP if skill 30 or below
-- You earn 25% of the normal XP if skill 30 to 60
-- You earn 12.5% of the normal XP if skill 60 to 90
-- You earn 5% of the normal XP if skill 90+
+Result:
+- If average ingredient value is 5gp, earn 1x XP
+- If average ingredient value is below 5gp, earn 0.5x to 1.0x XP as you scale from 0gp to 5gp linearly
+	- At 30, 60, and 90 skill, halve all the XP gained for potions with average values below 5gp, this stacks
+	- e.g. at 25 skill a 3gp average value potion will give 0.8x XP, at 34 skill it will give 0.4x XP, at 61 skill it will give 0.2x XP, and at 91 skill it will give 0.1XP
+- If average ingredient value is 5-200gp, scale the gained linearly from 1x to 3x, every 10gp average value adds 0.1x to the XP gain multiplier, e.g. an average ingredient value of 100gp results in 2x XP, an average value of 35gp results in a 1.35x XP multiplier, etc
 
 ### 18.10, GMST value and behaviour changes
 `alchemy.cpp`
@@ -3957,7 +4371,7 @@ Changes `Version.hpp` to,
 #define OPENMW_VERSION_HPP
 
 #define TES3MP_VERSION "0.8.1"
-#define TES3MP_PROTO_VERSION 804
+#define TES3MP_PROTO_VERSION 805
 
 #define TES3MP_DEFAULT_PASSW "blankpassword"
 #define TES3MP_MASTERSERVER_PASSW "12345"
@@ -3967,7 +4381,7 @@ Changes `Version.hpp` to,
 
 ```
 
-Working, this now produces a server and client that both have the internal checksum version of 804, instead of 10 for the core tes3mp release.
+Working, this now produces a server and client that both have the internal checksum version of 805, instead of 10 for the core tes3mp release.
 
 I have tested and it properly prevents you from connecting with the wrong version to the server, and from using the wrong client on a normal server.
 
@@ -4679,7 +5093,9 @@ There are a few things you have to be aware of when making or adjusting custom s
         - If you do this, the engine will default back to normal (1.0) XP gain to prevent errors
     - If you want to effectively disable XP gain globally set it to something like 0.00001
     - Otherwise no upper or lower limits
-
 - `skill books have level limit` - Boolean  
 	- True: Skill books do not advance a players skill past 90
 	- False: Base game behaviour, skill books work at any level
+- `use new constant effect difficulty logic` - Boolean
+	- True: Use the new Encore logic for constant effect enchantment difficulty, using player base skill
+	- False: Use the base game difficulty logic for constant effect enchantments

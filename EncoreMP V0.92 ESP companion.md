@@ -1,4 +1,4 @@
-This file details all the changes made in the required ESP file for the V0.91 EncoreMP beta release, `EncoreMPV091.ESP`.
+This file details all the changes made in the required ESP file for the V0.92 EncoreMP beta release, `EncoreMPV092.ESP`.
 
 # GMSTs
 
@@ -64,7 +64,7 @@ If a skill or XP value is not mentioned then it has been left at the base game v
 
 
 **Alchemy**
-- Creation a potion: 2xp to 3xp
+- Creation a potion: 2xp to 2.5xp
 - Eating an ingredient: 0.5xp to 0.75xp
 
 **Armorer**
@@ -75,9 +75,9 @@ If a skill or XP value is not mentioned then it has been left at the base game v
 - Swimming: 0.03xp to 0.07xp
 
 **Enchant**
-- Enchanting an item: 5xp to 15xp
-- Recharging an item: 5xp to 7xp
-- Using a magic item: 0.1xp to 0.5xp
+- Enchanting an item: 5xp
+- Recharging an item: 5xp
+- Using a magic item: 0.1xp to 0.2xp
 
 **Security**
 - Defeating a trap: 3xp to 4xp

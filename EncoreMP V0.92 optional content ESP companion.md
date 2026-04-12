@@ -1,4 +1,4 @@
-This file details all the changes made in the optional new content ESP file for the V0.91 EncoreMP beta release, `EncoreMPV091newcontent.ESP`
+This file details all the changes made in the optional new content ESP file for the V0.92 EncoreMP beta release, `EncoreMPV092newcontent.ESP`
 
 **Sections**
 1. Racial ability changes

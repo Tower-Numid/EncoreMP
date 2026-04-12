@@ -101,7 +101,46 @@ namespace MWMechanics
             if(getEnchantChance() <= (Misc::Rng::roll0to99()))
                 return false;
 
-            mEnchanter.getClass().skillUsageSucceeded (mEnchanter, ESM::Skill::Enchant, 2);
+            //EncoreMP block start to introduce variable XP based on soul size
+
+            float enchantXpMod = 1.0f;
+            float enchantXpMod2 = 0.0f;
+            int soulSize = getGemCharge();
+
+            if (soulSize <= 0)
+            {
+                enchantXpMod = 1.0f;
+            }
+            else if (soulSize >= 400)
+            {
+                enchantXpMod = 4.0f;
+            }
+            else if (soulSize >= 180)
+            {
+                enchantXpMod = 3.0f;
+                enchantXpMod2 = (soulSize - 180);
+                enchantXpMod2 *= (1.0f / 220.0f);
+                enchantXpMod += enchantXpMod2;
+            }
+            else if (soulSize >= 60)
+            {
+                enchantXpMod = 2.0f;
+                enchantXpMod2 = (soulSize - 60);
+                enchantXpMod2 *= (1.0f / 120.0f);
+                enchantXpMod += enchantXpMod2;
+            }
+            else
+            {
+                enchantXpMod = 1.0f;
+                enchantXpMod2 = soulSize;
+                enchantXpMod2 *= (1.0f / 60.0f);
+                enchantXpMod += enchantXpMod2;
+            }
+
+            //EncoreMP block end to introduce variable XP based on soul size
+
+
+            mEnchanter.getClass().skillUsageSucceeded (mEnchanter, ESM::Skill::Enchant, 2, enchantXpMod);
         }
 
         enchantment.mEffects = mEffectList;
@@ -111,7 +150,7 @@ namespace MWMechanics
         if(mCastStyle==ESM::Enchantment::ConstantEffect)
             enchantment.mData.mCharge = 0;
         else
-            enchantment.mData.mCharge = getGemCharge() / count;
+            enchantment.mData.mCharge = getGemCharge();
 
         // Try to find a dynamic enchantment with the same stats, create a new one if not found.
         const ESM::Enchantment* enchantmentPtr = getRecord(enchantment);
@@ -234,51 +273,50 @@ namespace MWMechanics
 
             float multpool = 1.0f;
 
-            // cost += ((magMin + magMax) * duration + area) * baseCost * fEffectCostMult * 0.05f;
+            //cost += ((magMin + magMax) * duration + area) * baseCost * fEffectCostMult * 0.05f;
 
             //cost = std::max(1.f, cost);
+
+
+            // EncoreMP, various changes to how specific effects are handled
 
             if (effect.mRange == ESM::RT_Target)
                 multpool *= 1.5f;
 
+
+            // EncoreMP, double the cost of all on-strike enchantments for balance reasons
             if (mCastStyle == ESM::Enchantment::WhenStrikes)
                 multpool *= 2.0f;
+
+
 
 			if (magicEffect)
 			{
 				int school = magicEffect->mData.mSchool;
+                // EncoreMP, double the cost of all destruction and restoration enchants of any kind, for balance (stacks with on-strike mod)
 				if (school == 2 || school == 5)
 				{
                     multpool *= 2.0f;
 				}
-                if (effenumid == 57 || effenumid == 74 || effenumid == 86 || effenumid == 88 || effenumid == 99)
+                if (effenumid == 86 || effenumid == 88)
                 {
+                    //EncoreMP, also double the cost of absorb health/fatigue when enchanting, as they are the only other sources of direct damage not in destruction
                     multpool *= 2.0f;
-                }
-                if (effenumid == 79)
-                {
-                    multpool *= 0.5f;
-                }
-                if (mCastStyle == ESM::Enchantment::ConstantEffect)
-                {
-                    if (effenumid == 3 || effenumid == 40 || effenumid == 42 || effenumid == 77 || effenumid == 79 || effenumid == 99)
-                    {
-                        multpool *= 1.5f;
-                    }
-                }
-                if (mCastStyle == ESM::Enchantment::CastOnce)
-                {
-                    if (school == 0 || school == 1)
-                    {
-                        multpool *= 0.5f;
-                    }
                 }
 			}
 
             float extra = std::max(0.0f, rawcost - 1.0f);
             float cost = 1.0f + extra * multpool;
 
+            //EncoreMP V0.92, halve all enchantment costs on scrolls
+            if (mCastStyle == ESM::Enchantment::CastOnce)
+            {
+                cost *= 0.5f;
+            }
+
             enchantmentCost += precise ? cost : std::floor(cost);
+
+
         }
 
         return enchantmentCost;
@@ -355,70 +393,48 @@ namespace MWMechanics
         if(mEnchanter.isEmpty())
             return 0;
 
-        float priceMultipler = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>().find ("fEnchantmentValueMult")->mValue.getFloat();
-        int price = MWBase::Environment::get().getMechanicsManager()->getBarterOffer(mEnchanter, static_cast<int>(getEnchantPoints() * priceMultipler), true);
-        const float enchantpointforcost = getEnchantPoints();
+        // Encore, get enchantment points to allow cost modification
+        float enchantpointforcost = getEnchantPoints();
 
+        // Encore, apply a cost increase past 30 points, to mirror the new difficulty logic
+        if (mCastStyle == ESM::Enchantment::WhenUsed || mCastStyle == ESM::Enchantment::CastOnce || mCastStyle == ESM::Enchantment::WhenStrikes)
+        {
+            if (enchantpointforcost > 30.0f)
+            {
+                enchantpointforcost = (30.0f + ((enchantpointforcost - 30.0f)*1.5f));
+            }
+        }
+
+        // base game logic to calculate price, using enchantpointforcost now instead of getEnchantPoints()
+        float priceMultipler = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>().find("fEnchantmentValueMult")->mValue.getFloat();
+        int price = MWBase::Environment::get().getMechanicsManager()->getBarterOffer(mEnchanter, static_cast<int>(enchantpointforcost * priceMultipler), true);
         price *= getEnchantItemsCount() * getTypeMultiplier();
 
+        // Encore, double the price for constant effects
         if (mCastStyle == ESM::Enchantment::ConstantEffect)
         {
             price *= 2;
         }
 
-        if (mCastStyle == ESM::Enchantment::WhenStrikes)
-        {
-            if (enchantpointforcost > 5)
-            {
-                float exceeds5 = (enchantpointforcost - 5);
-                int exceeds5cost = static_cast<int>(exceeds5 * priceMultipler * 2);
-                price += exceeds5cost;
-                if (enchantpointforcost > 10)
-                {
-                    float exceeds10 = (enchantpointforcost - 10);
-                    int exceeds10cost = static_cast<int>(exceeds10 * priceMultipler);
-                    price += exceeds10cost;
-                    if (enchantpointforcost > 15)
-                    {
-                        float exceeds15 = (enchantpointforcost - 15);
-                        int exceeds15cost = static_cast<int>(exceeds15 * priceMultipler * 5);
-                        price += exceeds15cost;
-                        if (enchantpointforcost > 20)
-                        {
-                            float exceeds20 = (enchantpointforcost - 20);
-                            int exceeds20cost = static_cast<int>(exceeds20 * priceMultipler * 30);
-                            price += exceeds20cost;
-                            if (enchantpointforcost > 25)
-                            {
-                                price += 5000000;
-                            }
-                        }
-                    }
-                }
-            }
-            if (getTypeMultiplier() == 0.05f)
-            {
-                price *= getEnchantItemsCount() * getTypeMultiplier() * 0.1f;
-            }
-        }
-
-        if (mCastStyle == ESM::Enchantment::WhenUsed)
-        {
-            if (enchantpointforcost > 25)
-            {
-                price += 5000000;
-            }
-        }
-
+        // Encore, lower scroll costs to 1/25th
         if (mCastStyle == ESM::Enchantment::CastOnce)
         {
-            price = static_cast<int>(price * 0.05);
-            if (enchantpointforcost > 30)
+            price *= 0.04;
+        }
+
+        ESM::WeaponType::Class weapClass = MWMechanics::getWeaponType(mWeaponType)->mWeaponClass;
+
+        //Encore, lower ammunition costs to 1/20th
+        if (mCastStyle == ESM::Enchantment::WhenStrikes)
+        {
+            if (mWeaponType != -1)
             {
-                price += 5000000;
+                if (weapClass == ESM::WeaponType::Thrown || weapClass == ESM::WeaponType::Ammo)
+                {
+                    price *= 0.05;
+                }
             }
         }
-        
 
         return std::max(1, price);
     }
@@ -484,81 +500,188 @@ namespace MWMechanics
         const float c = static_cast<float>(stats.getAttribute (ESM::Attribute::Luck).getModified());
         const float fEnchantmentChanceMult = gmst.find("fEnchantmentChanceMult")->mValue.getFloat();
         const float fEnchantmentConstantChanceMult = gmst.find("fEnchantmentConstantChanceMult")->mValue.getFloat();
-        const float enchantpointsforpenalty = getEnchantPoints();
+        const float enchantPointsForCE = getEnchantPoints();
+        float enchantPointsHolder = getEnchantPoints();
+        float d = 0.0f;
 
-        float x = (a - getEnchantPoints() * fEnchantmentChanceMult * getTypeMultiplier() * getEnchantItemsCount() + 0.2f * b + 0.1f * c) * stats.getFatigueTerm();
+        ESM::WeaponType::Class weapclass = MWMechanics::getWeaponType(mWeaponType)->mWeaponClass;
+
+        //soul size to success rate modifier
+        int soulSize = getGemCharge();
+        float enchantDifficultyMod = 0.0f;
+        float enchantDifficultyMod2 = 0.0f;
+
+        if (soulSize <= 0)
+        {
+            enchantDifficultyMod = 0.0f;
+        }
+        else if (soulSize >= 400)
+        {
+            enchantDifficultyMod = 30.0f;
+        }
+        else if (soulSize >= 180)
+        {
+            enchantDifficultyMod = 30.0f;
+            enchantDifficultyMod2 = (soulSize - 180);
+            enchantDifficultyMod2 *= (10.0f / 220.0f);
+            enchantDifficultyMod += enchantDifficultyMod2;
+        }
+        else if (soulSize >= 120)
+        {
+            enchantDifficultyMod = 15.0f;
+            enchantDifficultyMod2 = (soulSize - 120);
+            enchantDifficultyMod2 *= (5.0f / 60.0f);
+            enchantDifficultyMod += enchantDifficultyMod2;
+        }
+        else if (soulSize >= 60)
+        {
+            enchantDifficultyMod = 10.0f;
+            enchantDifficultyMod2 = (soulSize - 60);
+            enchantDifficultyMod2 *= (5.0f / 60.0f);
+            enchantDifficultyMod += enchantDifficultyMod2;
+        }
+        else if (soulSize >= 30)
+        {
+            enchantDifficultyMod = 5.0f;
+            enchantDifficultyMod2 = (soulSize - 30);
+            enchantDifficultyMod2 *= (5.0f / 30.0f);
+            enchantDifficultyMod += enchantDifficultyMod2;
+        }
+        else
+        {
+            enchantDifficultyMod = 0.0f;
+            enchantDifficultyMod2 = soulSize;
+            enchantDifficultyMod2 *= (5.0f / 30.0f);
+            enchantDifficultyMod += enchantDifficultyMod2;
+        }
+
+        //when used logic + cast once (scroll) logic + on-strike logic
+        //comes before the float x = equation so that this value is modified by fatigue, GMST, etc
+
+        if (mCastStyle == ESM::Enchantment::WhenUsed || mCastStyle == ESM::Enchantment::CastOnce || mCastStyle == ESM::Enchantment::WhenStrikes)
+        {
+            //small boost to generic success to smooth low levels
+            d += 5;
+            //add soul gem size bonus to success rate
+            d += enchantDifficultyMod;
+            //add a large boost for scrolls with costs less than 10
+            if (mCastStyle == ESM::Enchantment::CastOnce)
+            {
+                if (enchantPointsHolder < 10)
+                {
+                    d += 40;
+                    d -= (enchantPointsHolder * 4);
+                }
+            }
+            // increase difficulty when enchanting capacity exceeds 30
+            // for every point over 30, add half its value again to the cost
+            if (enchantPointsHolder > 30)
+            {
+                float enchantPenaltyB = enchantPointsHolder - 30;
+                enchantPenaltyB *= 0.5;
+                enchantPointsHolder += enchantPenaltyB;
+            }
+        }
+
+        //Encore addition, account for enchanting less than 20 ammunition at a time
+        float typeMult = 1.0f;
+        const int itemCount = getEnchantItemsCount();
+
+        if (mWeaponType != -1)
+        {
+            //modify the per ammo difficulty to normalise it for all amounts of ammo
+            if (weapclass == ESM::WeaponType::Thrown || weapclass == ESM::WeaponType::Ammo)
+            {
+                typeMult = (1.0f / itemCount);
+                //add the same success rate for 10 and below that scrolls get, to make throwing weapons/ammo easier at low levels
+                if (enchantPointsHolder < 10)
+                {
+                    d += 40;
+                    d -= (enchantPointsHolder * 4);
+                }
+            }
+        }
+
+        //get new constant effect logic server setting, true = use EncoreMP, false = revert to base game behaviour
+        bool useEncoreConstantEffectLogic = Settings::Manager::getBool("use new constant effect difficulty logic", "Game");
+
+        float x = ((a + d) - enchantPointsHolder * fEnchantmentChanceMult * typeMult * itemCount + 0.2f * b + 0.1f * c) * stats.getFatigueTerm();
 
         const MWWorld::Ptr ptrPlayer = MWBase::Environment::get().getWorld()->getPlayerPtr();
         const MWMechanics::NpcStats &ptrNpcStats = ptrPlayer.getClass().getNpcStats(ptrPlayer);
-        const int baseenchantforCE = ptrNpcStats.getSkill(9).getBase();
+        const float baseEnchantForCE = ptrNpcStats.getSkill(9).getBase();
+        const float modifiedEnchantForCE = static_cast<float>(mEnchanter.getClass().getSkill(mEnchanter, ESM::Skill::Enchant));
+
+
+        // CE logic, operates independently of all other enchanting difficulty checks
+        // Looks for player base skill and enchantment size to determine difficulty
+        // enchantPointsForCE = size of the enchantment (float)
+        // baseEnchantForCE = players base enchanting skill (float)
+        // modifiedEnchantForCE = modified skill (float)
+
+        // get the lowest of base and modified skill, so that skill drain/damage is accounted for, but buffs to the skill are not
+        float skillForCE = std::min(baseEnchantForCE, modifiedEnchantForCE);
+        float allowedEnchantSize = 0.0f;
+        float skillOverHolder = 0.0f;
+
 
         if (mCastStyle == ESM::Enchantment::ConstantEffect)
         {
-            if (baseenchantforCE < 75 || a < 75)
+            if (useEncoreConstantEffectLogic == true)
             {
-                x = 0;
-            }
-            else if (baseenchantforCE >= 100 && a >= 100)
-            {
-                x = 100;
-            }
-            else if (baseenchantforCE >= 95 && a >= 95 && enchantpointsforpenalty <= 90)
-            {
-                x = 100;
-            }
-            else if (baseenchantforCE >= 90 && a >= 90 && enchantpointsforpenalty <= 75)
-            {
-                x = 100;
-            }
-            else if (baseenchantforCE >= 85 && a >= 85 && enchantpointsforpenalty <= 60)
-            {
-                x = 100;
-            }
-            else if (baseenchantforCE >= 80 && a >= 80 && enchantpointsforpenalty <= 45)
-            {
-                x = 100;
-            }
-            else if (baseenchantforCE >= 75 && a >= 75 && enchantpointsforpenalty <= 30)
-            {
-                x = 100;
-            }
-        }
+                if (skillForCE < 60.0f)
+                {
+                    //always fail is skill is below 60
+                    x = 0;
+                }
+                else if (skillForCE >= 100.0f)
+                {
+                    //always succed when skill is 100
+                    x = 100;
+                }
+                else
+                {
+                    // calculate the allowed size you can make based on skill
 
-        if (mCastStyle == ESM::Enchantment::WhenUsed || mCastStyle == ESM::Enchantment::WhenStrikes)
-        {
-            if (enchantpointsforpenalty < 5.1)
-            {
-                x += 25;
-            }
-            if (enchantpointsforpenalty > 20.1)
-            {
-                float enchantpenaltyA = enchantpointsforpenalty - 20;
-                x -= (10 * enchantpenaltyA);
-            }
-            if (enchantpointsforpenalty > 25.1)
-            {
-                float enchantpenaltyB = enchantpointsforpenalty - 25;
-                x -= (10 * enchantpenaltyB);
-            }
-        }
+                    if (skillForCE < 70.0f)
+                    {
+                        allowedEnchantSize = 5.0f;
+                        skillOverHolder = (skillForCE - 60.0f);
+                        allowedEnchantSize += skillOverHolder;
+                    }
+                    else if (skillForCE < 80.0f)
+                    {
+                        allowedEnchantSize = 15.0f;
+                        skillOverHolder = (skillForCE - 70.0f);
+                        allowedEnchantSize += (2.0f * skillOverHolder);
+                    }
+                    else if (skillForCE < 90.0f)
+                    {
+                        allowedEnchantSize = 35.0f;
+                        skillOverHolder = (skillForCE - 80.0f);
+                        allowedEnchantSize += (3.0f * skillOverHolder);
+                    }
+                    else
+                    {
+                        allowedEnchantSize = 65.0f;
+                        skillOverHolder = (skillForCE - 90.0f);
+                        allowedEnchantSize += (4.0f * skillOverHolder);
+                    }
 
-
-        if (mCastStyle == ESM::Enchantment::CastOnce)
-        {
-            x += 25;
-            if (enchantpointsforpenalty < 5.1)
-            {
-                x += 25;
+                    //if allowed size is equal to or greater than the size you are trying to make, always suceed, else always fail
+                    if (allowedEnchantSize >= enchantPointsForCE)
+                    {
+                        x = 100;
+                    }
+                    else
+                    {
+                        x = 0;
+                    }
+                }
             }
-            if (enchantpointsforpenalty > 20.1)
+            else
             {
-                float enchantpenaltyA = enchantpointsforpenalty - 20;
-                x -= (10 * enchantpenaltyA);
-            }
-            if (enchantpointsforpenalty > 25.1)
-            {
-                float enchantpenaltyB = enchantpointsforpenalty - 25;
-                x -= (10 * enchantpenaltyB);
+                x *= fEnchantmentConstantChanceMult;
             }
         }
 
@@ -574,7 +697,8 @@ namespace MWMechanics
             ESM::WeaponType::Class weapclass = MWMechanics::getWeaponType(mWeaponType)->mWeaponClass;
             if (weapclass == ESM::WeaponType::Thrown || weapclass == ESM::WeaponType::Ammo)
             {
-                static const float multiplier = std::max(0.f, std::min(1.0f, Settings::Manager::getFloat("projectiles enchant multiplier", "Game")));
+                //static const float multiplier = std::max(0.f, std::min(1.0f, Settings::Manager::getFloat("projectiles enchant multiplier", "Game")));
+                //disabled for EncoreMP V0.92
                 MWWorld::Ptr player = getPlayer();
                 int itemsInInventoryCount = player.getClass().getContainerStore(player).count(mOldItemPtr.getCellRef().getRefId());
                 count = std::min(itemsInInventoryCount, std::max(1, 20));
@@ -586,8 +710,9 @@ namespace MWMechanics
 
     float Enchanting::getTypeMultiplier() const
     {
-        static const bool useMultiplier = Settings::Manager::getFloat("projectiles enchant multiplier", "Game") > 0;
-        if (useMultiplier && mWeaponType != -1 && getEnchantPoints() > 0)
+        //static const bool useMultiplier = Settings::Manager::getFloat("projectiles enchant multiplier", "Game") > 0;
+        //disabled for EncoreMP V0.92
+        if (mWeaponType != -1 && getEnchantPoints() > 0)
         {
             ESM::WeaponType::Class weapclass = MWMechanics::getWeaponType(mWeaponType)->mWeaponClass;
             if (weapclass == ESM::WeaponType::Thrown || weapclass == ESM::WeaponType::Ammo)
