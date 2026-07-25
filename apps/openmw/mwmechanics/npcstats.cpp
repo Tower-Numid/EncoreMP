@@ -252,6 +252,7 @@ void MWMechanics::NpcStats::useSkill (int skillIndex, const ESM::Class& class_, 
     skillGain *= xpreductionmultiplier;
 
     // block to process the global XP multiplier setting
+    // if global value is 0 or less, default to 1 to avoid math errors
 
     if (globalXPMod <= 0.0f)
     {
@@ -260,7 +261,7 @@ void MWMechanics::NpcStats::useSkill (int skillIndex, const ESM::Class& class_, 
 
     skillGain *= globalXPMod;
 
-    //
+    // end of encoreMP xp gain logic
 
     MWMechanics::SkillValue& value = getSkill (skillIndex);
 

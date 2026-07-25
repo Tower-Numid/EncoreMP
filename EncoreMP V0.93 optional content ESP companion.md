@@ -1,4 +1,4 @@
-This file details all the changes made in the optional new content ESP file for the V0.92 EncoreMP beta release, `EncoreMPV092newcontent.ESP`
+This file details all the changes made in the optional new content ESP file for the V0.93 EncoreMP beta release, `EncoreMPV093newcontent.ESP`
 
 **Sections**
 1. Racial ability changes
@@ -33,7 +33,7 @@ This file details all the changes made in the optional new content ESP file for 
 - 75% common disease resistance
 
 **Imperial**
-- Voice of the emperor, power, calm humanoid 100 points for 60 seconds on target and charm 100 points for 120 seconds on target
+- Voice of the emperor, power, calm humanoid 100 points for 60 seconds on target and charm 50-100 points for 120 seconds on target
 - Star of the west, power, absorb fatigue 15 points for 10 seconds on target
 
 **Khajit**
@@ -56,12 +56,12 @@ This file details all the changes made in the optional new content ESP file for 
 **Redguard**
 - Resist disease 75%
 - Resist poison 75%
-- Sword singing, power, Reflect 40 points on self for 60 seconds, Restore Magicka 1-2 points for 60 seconds on self
+- Sword singing, power, Reflect 30 points on self for 60 seconds, Restore Magicka 1-2 points for 60 seconds on self
 - Adrenaline rush, power, Fortify agility 50 points on self for 60 seconds, Fortify strength 50 points on self for 60 seconds, Fortify speed 50 points on self for 60 seconds, Fortify endurance 50 points on self for 60 seconds, Fortify health 25 points on self for 60 seconds
 
 **Wood elf**
 - Resist disease 75%
-- Beast tongue, power, Command creature 10 points for 1200 seconds
+- Beast tongue, power, Command creature 10 points for 300 seconds on target in a 5ft AOE
 - Beast kin, spell, 10 magicka, always succeeds, calm creature 10 points for 60 seconds
 
 # 2, Star sign changes

@@ -657,7 +657,7 @@ namespace MWClass
                         hitchance = hitchance - 15;
                     }
                 }
-                if (weaponType == ESM::Weapon::SpearTwoWide || weaponType == ESM::Weapon::ShortBladeOneHand)
+                if (weaponType == ESM::Weapon::ShortBladeOneHand)
                 {
                     hitchance += 10;
                 }
@@ -1905,14 +1905,15 @@ namespace MWClass
 
         float athleticsswimmod = 0.01f;
 
+        //EncoreMP swim speed athletics scaling
         float athleticsholder = getSkill(ptr, ESM::Skill::Athletics);
 
         if (ptr == player)
         {
             athleticsswimmod = 0.03f;
-            if (athleticsholder > 500.0f)
+            if (athleticsholder > 166.0f)
             {
-                athleticsholder = 500.0f;
+                athleticsholder = 166.0f;
             }
         }
 

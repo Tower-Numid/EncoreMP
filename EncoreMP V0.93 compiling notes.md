@@ -1,6 +1,6 @@
 
 # Compiling Changelog
-For the V0.92 release    
+For the V0.93 release    
 
 This is a guide to the coding changes made, and the reasoning behind them. Hopefully it's useful if you want to change parts of the project yourself, or learn about the engine structure.        
 
@@ -10,9 +10,9 @@ Some sections are missing, this is intentional, they have been removed as they b
 
 1. Enchanting    
 2. XP gain    
-3. Trainig costs    
+3. Training costs    
 4. Magic resist cap    
-5. Miscellanious changes     
+5. Miscellaneous changes     
 6. Melee changes    
 7. Ranged changes    
 8. Acrobatics and climbing    
@@ -24,7 +24,7 @@ Some sections are missing, this is intentional, they have been removed as they b
 14. Swimming    
 15. Removed - Obsolete Section    
 16. Mercantile    
-17. NPC spellcasting engine change    
+17. NPC spellcasting locked to base game spell effect costs   
 18. Alchemy    
 19. Removed - Obsolete Section    
 20. Removed - Obsolete Section    
@@ -35,9 +35,9 @@ Some sections are missing, this is intentional, they have been removed as they b
 25. Hand to hand    
 26. Pickpocketing    
 27. Server checksum    
-28. Stealth    
+28. Caching stealth checks    
 29. Ally difficulty scaling    
-30. Spell buying menus    
+30. Spell buying menu substitution system   
 31. New gameplay settings    
 
 
@@ -451,24 +451,24 @@ So now each item of ammunition recieves the full charge of the soul gem
 - Good if you want to drag out the low levels and experience an epic TR game
 
 ## 3, Training costs
-`trainingwindow.cpp`
-- `trainingwindow.cpp` modified in two locations as in section 1.1 work area 2 in such a way as to produce a non-linear increase in training costs for all skills whilst respecting the GMST. So the GMST setting of 10 can be doubled to 20, for example, and the non-linear price increases will also double uniformly.
+`trainingwindow.cpp`  
+These changes are not well documented, look in `trainingwindow.cpp`  for all the changes made
+- `trainingwindow.cpp` was modified in two locations to produce a non-linear increase in training costs for all skills whilst respecting the GMST. So the GMST training cost setting of 10 can be doubled to 20, for example, and the non-linear price increases will also double in line with this
 - Note that two edits were required (with duplicate code) as this file calculates the cost mechanically and the cost in the UI (training window) independently
 
-## 4, MR cap
+## 4, Magic resist cap
 `spellcasting.cpp`
 `inventorystore.cpp`
 
  - Magic resistance now has no mechanical effect beyond 60% (after accounting for weakness effects which negate it 1:1)
  - Added a clause each to each of `spellcasting.cpp` and `inventorystore.cpp`. It was necessary for it to be formatted differently in each location, but the function is the same
  - Had to manually define the list of effects which were to have their resistances capped
-	 - The reason was because I wanted not to cap the magnitude of resist magicka effects to avoid complicated changes to the UI and spell behaviour
  - TGM is unaffected, it still gets full immunity due to the location this code change was positioned
  - In `spellcasting.cpp` the `inflict` function was modified with a conditional check that caps magic resist for a pre-defined list of effects
  - In `inventorystore.cpp` the `updateMagicEffects` function was modified with the same logic but formatted slightly differently as this file required
  - The two changes were necessary as `inflict` in `spellcasting.cpp` covers all possible sources of negative effects except for constant effect enchantments, which are handled via the `inventorystore.cpp` code
 
-## 5, Miscellaneous changes and fixes
+## 5, Miscellaneous changes   
 `npcstats.cpp`
 `repair.cpp`
 `spellcasting.cpp`
@@ -618,18 +618,15 @@ The result is that behaviour is unchanged for on-use items, but for on-strike it
 - The change to how base damage is calculated (using skill as well as an attribute, with the same sum benefit of +50%) is implemented in the function `adjustWeaponDamage` within `combat.cpp`
 
 **Weapon type benefits**
-- Weapon type accuracy variations are implemented in `npc.cpp` within the function `hit`
+- The short blade accuracy boost is implemented within `npc.cpp` in the `hit` function
 - The changes to what contributes to damage for each weapon are implemented in the function `adjustWeaponDamage` within `combat.cpp`
 
 **Gameplay settings**
-- Three new gameplay settings have been added to toggle EncoreMP behaviour
-- "long blades use agility for damage scaling"
-	- If true: Long blades use agility to scale their bonus damage 
-	- If false: Long blades use strength to scale their bonus damage (like axes and maces)
-- "two handed weapons receive an accuracy penalty"
+- Two new gameplay settings have been added to toggle EncoreMP behaviour
+- `two handed weapons receive an accuracy penalty`
 	- If true: 2 handed weapons take the -15% to hit penalty
 	- If false: 2 handed weapons recieve no penalty to their hit chance 
-- "staves receive accuracy bonus instead of two handed penalty"
+- `staves receive accuracy bonus instead of two handed penalty`
 	- If true: Staves recieve the +20% to hit chance bonus
 	- If false: Staves use whatever modifier applies to other 2h weapons (if 2h accuracy penalty is on, staves take the -15% hit chance penalty, if that setting is also false then staves take neither the +20% bonus nor the -15% penalty) 
 
@@ -638,7 +635,7 @@ The result is that behaviour is unchanged for on-use items, but for on-strike it
 `combat.cpp`
 **Accuracy**
 - Ranged attacks follow the same accuracy change logic as implemented for melee, as determined in the `getHitChance` function within `combat.cpp`
-	- In addition within the `projectileHit` function in `combat.cpp` ranged attacks are there given a flat +20 to hit, for balancing reasons (they are intended to be more accurate to make up for missed shots due to poor aim)
+	- In addition within the `projectileHit` function in `combat.cpp` ranged attacks are there given a flat +10 to hit, for balancing reasons (they are intended to be more accurate to make up for missed shots due to poor aim)
 
 **Damage**
 - Bows and crossbows have their damage modified to function similar to melee, increasing with skill and attribute, but they use agility as their damage attribute instead of strength. This is done in the `adjustWeaponDamage` function within `combat.cpp`
@@ -652,19 +649,18 @@ The result is that behaviour is unchanged for on-use items, but for on-strike it
 
 ## 8, Acrobatics and climbing
 `movementsolver.hpp`
-Headers added (to call base player skill)
+Headers added (to call player skill)
 
-The `static bool isWalkableSlope` logic within `movementsolver.hpp` was updated to check if it is the player (only the player is affected by this change), and to get the players base acrobatics skill and scale the climbing angle allowed based on skill as described in the mechanics changes.
+The `static bool isWalkableSlope` logic within `movementsolver.hpp` was updated to check if it is the player, and to get the players acrobatics skill and scale the climbing angle allowed based on skill as described in the mechanics changes.
 
-The climbing angle is hard capped at 89° to minimise the risk of unusual behaviour (90° proved to cause some unusual behaviour during testing that would require a more extensive change to the movement logic).
+The climbing angle is hard capped at 89° to prevent strange behaviour (90° resulted in players sticking to vertical walls during testing)
 
  - This change adjust the criteria for the engine to determine the boolean `iswalkableslope` and restricts it to the player
- - There is not effect on the default value (47°) at 30 skill or below, and no benefit beyond 92 base skill (the angle you can climb to is hard capped to 89° for compatibility reasons)
+ - There is no effect on the default value (47°) at 30 skill or below, and no benefit beyond 92 skill (the angle you can climb to is hard capped to 89° for compatibility reasons)
  - Increasing the angle to 90° (or beyond) does not allow true wall climbing, due to separate logic checks in the openmw engine that exist  to prevent wall collision/sticking
 	 - I did not attempt to resolve this, as this would require a more extensive rework of the physics engine which would further risk compatibility with new content.
 	 - In short, whilst wall climbing is technically possible with some changes it meant (in the version I trialled) that you "stuck" to every wall you touched, which meant your speed slowed down to a crawl as you attempted to being moving vertically up it at greatly reduced speed, which was a huge problem in many urban areas and most interiors
 - The `sMaxSlope` variable is seemingly not accessible to the compiler (47° - is it in the ESM file?) but it can be worked around in the way I have done without issues.
-- There remain risks of floor detection failing when climbing, or clipping through ceilings, this will be investigated as playtesting continues.
 - Several functions within `movementsolver.cpp` call the Boolean `iswalkableslope`, these have been checked for unintended knock-on effects, and of the functions within the `cpp` file there are only two are of potential concern (although no issues have been seen yet during playtesting)
 	- `osg::Vec3f MovementSolver::traceDown` beginning on line 80, but the bool starts getting called around line 106
 		- I have no idea what the ray tracing logic does here, but it seems only to be involved in whether you can walk or not on a slope (so probably the actual post-hoc function that is implementing this change)
@@ -673,7 +669,7 @@ The climbing angle is hard capped at 89° to minimise the risk of unusual behavi
 	- Other areas of code checked and certainly of no concern for unintended behaviour, these two I couldn't pick apart in the time I spent on this (I am way out of my depth with the physics engine stuff)
 
 
-## 9, Difficulty Tiers and new difficulty scaling
+## 9, Difficuly overhaul
 Modified files:
 `difficultyscaling.hpp`
 `difficultyscaling.cpp`
@@ -1441,7 +1437,7 @@ and to add the if statement logic
 so that only in cases were armour is being calculated for the player, and their skill is below 30, the modified equation of (skill + 5) / (GMST + 5) is used
 
 
-## 11, Unarmoured derived armour ratings
+## 11, Unarmoured 
 `npc.cpp`
 
 Within `npc.cpp` the function `getArmorRating` calculates player armour rating locally
@@ -2227,14 +2223,18 @@ This was done to make the prices more reasonable for testing, and for the first 
 
 
 
-## 14, Athletics derived swim speed
+## 14, Swimming
 `npc.cpp`
 
-This change boosts the contribution to swim speed (as a % of base run speed) by the player's athletics from 1% a level to 3% a level. Resulting in the player going from 50-80% swim speed, vs 50-60% in the base game, when they go from 1-100 athletics.
+This change boosts how much the players athletics skill increases their swim speed (expressed as a % of their land running speed).
+
+The player athletics now increases their swimming speed by 0.3% a level, up from 0.1% a level in the base game.  
+
+This results in the player going from 50-80% swim speed from 1-100 athletics, vs 50-60% in the base game.
 
 This is restricted to the player only via an if player is ptr check, and replacing a hardcoded value with a local variable in the function.
 
-There is a hard cap to how much athletics can contribute to swim speed of level 500 athletics (which works out to +150% run to swim speed, on top of the 50% you get at skill 1. For a total of 200% base swim speed at 500 skill).
+There is a hard cap to how much athletics can contribute to swim speed. At level 166 athletics you reach 100% of your land running speed, and there is no further benefit to increasing the athletics skill beyond this point.
 
 The function `getSwimSpeed`,
 
@@ -2266,7 +2266,7 @@ The function `getSwimSpeed`,
     }
 ```
 
-was updated as follows
+was updated to the following
 
 ```
     float Npc::getSwimSpeed(const MWWorld::Ptr& ptr) const
@@ -2297,9 +2297,9 @@ was updated as follows
         if (ptr == player)
         {
             athleticsswimmod = 0.03f;
-            if (athleticsholder > 500.0f)
+            if (athleticsholder > 166.0f)
             {
-                athleticsholder = 500.0f;
+                athleticsholder = 166.0f;
             }
         }
 
@@ -2314,7 +2314,7 @@ was updated as follows
 This change
 - Respects all GMSTs
 - Caps skill contribution to swimming only
-- Toggles variable value for player and non-players (which are preserved with base game behaviour)
+- Only affects the player
 
 ## 16, Mercantile
 `mechanicsmanagerimp.cpp`
@@ -3050,7 +3050,7 @@ Modified,
 
 
 
-## 18 Alchemy overhaul
+## 18, Alchemy  
 `alchemy.cpp`
 `spellcasting.cpp`
 
@@ -3740,7 +3740,7 @@ Right after tools are applied, and right before it rounds the values, the effect
 
 Since the spell making logic is (magnitude x 2) x duration, to generate effect cost, if you want to adjust that ratio for potions you just need to change the two GMSTs whilst respecting the ratio.
 
-## 21, More XP from casting expensive spells
+## 21, Variable spellcasting XP gain 
 `spellcasting.cpp`
 
 
@@ -3751,27 +3751,27 @@ if (!mManualSpell && mCaster == getPlayer() && spellIncreasesSkill(spell))
 	mCaster.getClass().skillUsageSucceeded(mCaster, spellSchoolToSkill(school), 0);
 ```
 
-New code
+New code as of V0.93
 
 ```
-        //EncoreMP, more XP from high costed spells
+        // EncoreMP, grant more XP when costing spells above 5 magicka
 
         float xpMult = 1.0f;
         float spellCost = spell->mData.mCost;
 
         if (spellCost > 5.0f)
         {
-            xpMult = (spellCost * 0.0889f);
-            xpMult += 0.556f;
+            spellCost = std::min(spellCost, 50.f);
+            xpMult += ((spellCost - 5.0f) * 0.0666f);
         }
 
         if (!mManualSpell && mCaster == getPlayer() && spellIncreasesSkill(spell))
             mCaster.getClass().skillUsageSucceeded(mCaster, spellSchoolToSkill(school), 0, xpMult);
 
-        //end of EncoreMP, more XP from high costed spells
+        // end of EncoreMP increased XP from high cost spells
 ```
 
-## 23, Willpower change (buff)
+## 23, Willpower changes 
 `spellutil.cpp`
 `spellcasting.cpp`
 `inventorystore.cpp`
@@ -3800,26 +3800,77 @@ In `calcSpellBaseSuccessChance` in `spellutil.cpp`, added a 1.5x multiplier for 
 ```
 
 
-**Willpower: Resist magicka**
-`spellcasting.cpp`
+**Willpower: Resist magicka**  
+`spellcasting.cpp`  
 `inventorystore.cpp`
 
-Within `spellcasting.cpp`, the magic resist capping system was modified to include a conversion of willpower to magic resist.
+Within `spellcasting.cpp`, the magic resist capping system was modified to include a block that adds to the players magic resistance based on their willpower
 
 For every 5 points of willpower above 50, add 1% magic resistance.
-- So at 100 willpower, your character has an invisible +10% resist magicka
+- So at 100 willpower, your character has a passive +10% resist magicka effect at all times
 
-modification to function
+The modification to the `updateMagicEffects` function in `inventorystore.cpp`
+
+```
+                    // Start of EncoreMP resistance caps
+
+                    float maxResistSetting = 0.6f;
+                    maxResistSetting = std::max(0.0f, maxResistSetting);
+                    maxResistSetting = std::min(1.0f, maxResistSetting);
+                    float minimumAllowedMultiplier = (1.0f - maxResistSetting);
+
+                    const bool isPlayer = (actor == MWMechanics::getPlayer());
+
+                    float willMagicResist = 0.0f;
+
+                    //sub system to add 10% of willpower to magic resist
+                    if (isPlayer)
+                    {
+                        MWWorld::Ptr player = MWMechanics::getPlayer();
+                        const MWMechanics::CreatureStats& playerStats = player.getClass().getCreatureStats(player);
+                        float playerWill = playerStats.getAttribute(ESM::Attribute::Willpower).getModified();
+                        // Apply bonus resist magicka based on willpower above 50, 1% for every 10 points, this obeys the cap
+                        if (playerWill > 50.0f)
+                        {
+                            playerWill -= 50.0f;
+                            willMagicResist = (playerWill / 500.0f);
+                        }
+                    }
+
+
+                    // Check for drain effects
+                    //DrainAttribute = 17, DrainHealth = 18, DrainMagicka = 19, DrainFatigue = 20, DrainSkill = 21
+                    if (effect.mEffectID == 17 || effect.mEffectID == 18 || effect.mEffectID == 19 || effect.mEffectID == 20 || effect.mEffectID == 21)
+                    {
+                        if (isPlayer) 
+                        {
+                            params[i].mMultiplier -= willMagicResist;
+                            params[i].mMultiplier = std::max(minimumAllowedMultiplier, params[i].mMultiplier);
+                        }
+
+                    }
+```
+
+and then it repeats that check for effects block for each set of effects included in the MR system.
+
+The `inflict` function in `spellcasting.cpp` was modified in a similar way
 
 ```
             // Start of EncoreMP resistance caps
 
             if (target == getPlayer())
             {
-                int effectholder = 1;
-                effectholder = effectIt->mEffectID;
+                int effectholder = effectIt->mEffectID;
 
-                float magcap = 0.4f;
+                bool applyCap = false;
+
+                float maxResistSetting = 0.6f;
+
+                maxResistSetting = std::max(0.0f, maxResistSetting);
+                maxResistSetting = std::min(1.0f, maxResistSetting);
+
+                float minimumAllowedMultiplier = (1.0f - maxResistSetting);
+
 
                 //sub system to add 10% of willpower to magic resist
                 MWWorld::Ptr player = getPlayer();
@@ -3827,6 +3878,7 @@ modification to function
                 float playerWill = playerStats.getAttribute(ESM::Attribute::Willpower).getModified();
                 float willMagicResist = 0.0f;
 
+                // Apply bonus resist magicka based on willpower above 50, 1% for every 10 points, this obeys the cap
                 if (playerWill > 50.0f)
                 {
                     playerWill -= 50.0f;
@@ -3834,77 +3886,27 @@ modification to function
                 }
 
                 //check for drain effects
+                //DrainAttribute = 17, DrainHealth = 18, DrainMagicka = 19, DrainFatigue = 20, DrainSkill = 21
                 if (effectholder == 17 || effectholder == 18 || effectholder == 19 || effectholder == 20 || effectholder == 21)
                 {
-                    magnitudeMult -= willMagicResist;
-                    if (magnitudeMult < magcap)
-                    {
-                        magnitudeMult = magcap;
-                    }
+                    applyCap = true;
                 }
-```
+				// etc for the other effect blocks
 
-and it just repeats the
-
-```
+                if (applyCap == true)
                 {
                     magnitudeMult -= willMagicResist;
-                    if (magnitudeMult < magcap)
+                    if (magnitudeMult < minimumAllowedMultiplier)
                     {
-                        magnitudeMult = magcap;
+                        magnitudeMult = minimumAllowedMultiplier;
                     }
                 }
-```
 
-logic for every group of MR effect checks
-
-The same was done in `inventorystore.cpp`, as had to be done with the original willpower capping, as magic items with constant effects are handled separately here.
-
-Within `void MWWorld::InventoryStore::updateMagicEffects(const Ptr& actor)`
-
-```
- if (!existed)
-            {
-                params.resize(enchantment.mEffects.mList.size());
-
-                int i=0;
-                for (const ESM::ENAMstruct& effect : enchantment.mEffects.mList)
-                {
-                    int delta = effect.mMagnMax - effect.mMagnMin;
-                    // Roll some dice, one for each effect
-                    if (delta)
-                        params[i].mRandom = Misc::Rng::rollDice(delta + 1) / static_cast<float>(delta);
-                    // Try resisting each effect
-                    params[i].mMultiplier = MWMechanics::getEffectMultiplier(effect.mEffectID, actor, actor);
-
-                    // Start of EncoreMP resistance caps
-
-                    float magcap = 0.4f;
-
-                    //sub system to add 10% of willpower to magic resist
-                    MWWorld::Ptr player = MWMechanics::getPlayer();
-                    const MWMechanics::CreatureStats &playerStats = player.getClass().getCreatureStats(player);
-                    float playerWill = playerStats.getAttribute(ESM::Attribute::Willpower).getModified();
-                    float willMagicResist = 0.0f;
-
-                    if (playerWill > 50.0f)
-                    {
-                        playerWill -= 50.0f;
-                        willMagicResist = (playerWill / 500.0f);
-                    }
-
-                    // Check for drain effects
-                    if (effect.mEffectID == 17 || effect.mEffectID == 18 || effect.mEffectID == 19 || effect.mEffectID == 20 || effect.mEffectID == 21)
-                    {
-                        params[i].mMultiplier -= willMagicResist;
-                        params[i].mMultiplier = std::max(magcap, params[i].mMultiplier);
-                    }
+            }
 
 ```
 
-and the same for all the other sequential groups of magical effect checks.
-
-## 25, Hand to Hand changes
+## 25, Hand to Hand 
 `combat.cpp`
 `npc.cpp`
 `creature.cpp`
@@ -3919,11 +3921,16 @@ This change has not been made here, it was done during the original melee accura
 
 Tested and confirmed that hand to hand accuracy is also captured in the new weapon accuracy logic, so hand to hand combat accuracy is,
 ```
-Accuracy = (Hand to hand skill*0.7)+(Agility/5)+(Luck/10)
-Accuracy *= fatigue mod
-Accuracy += fortify attack
-Accuracy -= blind
-Accuracy += 20
+        if (attacker == getPlayer())
+        {
+            attackTerm += (skillValue * 0.8) +
+                (stats.getAttribute(ESM::Attribute::Agility).getModified() / 5.0f) +
+                (stats.getAttribute(ESM::Attribute::Luck).getModified() / 10.0f);
+            attackTerm *= stats.getFatigueTerm();
+            attackTerm += mageffects.get(ESM::MagicEffect::FortifyAttack).getMagnitude() -
+                mageffects.get(ESM::MagicEffect::Blind).getMagnitude();
+            attackTerm += 10;
+        }
 ```
 So it has a higher floor, and scales slower. This is the same code used for weapon accuracy.
 
@@ -3939,13 +3946,11 @@ For example, given that a fully drawn attack caps out at a 0.5x multiplier,
 - Skill 30 = 15
 
 So the logic was changed to use (10 + (your skill x 0.9)),
-which is then modified by the draw strength as in core, resulting in:
-
+which is then modified by the draw strength as in core, resulting in:  
 - Skill 5 = 7.25 fatigue damage
 - Skill 10 = 9.5
 - Skill 20 = 14
 - Skill 30 = 18.5
-
 - It then becomes roughly equivalent to core behaviour from skill 40 onwards, scaling a little slower overall and reaching the same final damage value at 100 skill.
 - Beyond 100 skill this does result in a reduction in damage gained from skill, but that is probably desirable due to the linear scaling already resulting in potentially absurd figures with some fortify skill effects
 
@@ -3953,14 +3958,15 @@ The code change was done in: `combat.cpp`, within the function `void getHandToHa
 
 The first few lines were changed to
 ```
-    void getHandToHandDamage(const MWWorld::Ptr &attacker, const MWWorld::Ptr &victim, float &damage, bool &healthdmg, float attackStrength)
-    {
-        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
-        float minstrike = store.get<ESM::GameSetting>().find("fMinHandToHandMult")->mValue.getFloat();
-        float maxstrike = store.get<ESM::GameSetting>().find("fMaxHandToHandMult")->mValue.getFloat();
-        damage  = (0.9f * (static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::HandToHand))));
-        damage += 10.0f;
-        damage *= minstrike + ((maxstrike-minstrike)*attackStrength);
+if (attacker == MWMechanics::getPlayer())
+{
+    damage = (0.9f * (static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::HandToHand))));
+    damage += 10.0f;
+}
+else
+{
+    damage = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::HandToHand));
+}
 ```
 
 Whereas before damage was just equal to your skill
@@ -4038,19 +4044,6 @@ float scaleHandDamage(float damage, const MWWorld::Ptr& attacker, const MWWorld:
 }
 ```
 
-This results in,
-
-| Tier | % Melee/<br>on-hit dealt | % Melee <br>taken | % Magic/ench<br>damage dealt | % Magic<br>taken | Fatigue dealt | Fatigue taken |
-| ---- | ------------------------ | ----------------- | ---------------------------- | ---------------- | ------------- | ------------- |
-| 1    | 100                      | 100               | 100                          | 100              | 100           | 100           |
-| 2    | 75                       | 150               | 85                           | 125              | 85            | 125           |
-| 3    | 50                       | 200               | 70                           | 150              | 70            | 150           |
-| 4    | 30                       | 300               | 50                           | 200              | 50            | 200           |
-| 5    | 20                       | 400               | 33                           | 250              | 33            | 250           |
-| 6    | 15                       | 500               | 25                           | 300              | 25            | 300           |
-
-The numbers are the result of some initial playtesting, and may need refining. Also note for now they are just a duplicate of the magic damage scaling values (which have seemed to be okay from the internal tests).
-
 Another change was required within `npc.cpp`,
 within the 'else' fork of that function (this else fork covers if `isHealth` if false) within `onHit`
 ```
@@ -4091,15 +4084,16 @@ Also, for creatures I didn't check if there are any non-attack sourced calls to 
 
 Openmw adds an optional strength scaling for hand to hand combat. I would like to keep this, and suggest it be toggled on by default, however the way it is implemented is slightly buggy and not in line with how attributes affect other skills.
 
-If the toggle is on, it does
+If this was toggled on it did this,
 ```
-damage *= attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() / 40.0f;
+damage *= 
+attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() / 40.0f;
 ```
 
 Which is multiplying your hand to hand damage by your strength over 40, this causes two problems (one likely unintentional)
 - At 100 strength you are doing 2.5x hand to hand damage, this seems excessive, and certainly will be as I revise this system
 - At damaged strength values below 40, you do massively reduced damage (I assume this is unintentional), e.g. if you are damaged to strength 10, you do 10/40 = 25% of your normal damage
-	- Whereas with all weapons in the base game, a strength of 10 would only reduce weapon damage to 60% of the bae value, since that logic is counting values above and below 50
+	- Whereas with all weapons in the base game, a strength of 10 would only reduce weapon damage to 60% of the base value, since that logic is counting values above and below 50
 
 So to fix this, I am changing the strength scaling here to be in line with weapon scaling logic, and to scale based on the strength value above or below 50.
 
@@ -4128,39 +4122,22 @@ Now it does,
         int factorStrength = Settings::Manager::getInt("strength influences hand to hand", "Game");
         if (factorStrength == 1 || (factorStrength == 2 && !isWerewolf))
         {
-            //EncoreMP, change str scaling to behave like weapon scaling does in core
+            // EncoreMP, change str scaling to behave like weapon scaling does in core
             float attackerStrength = attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified();
             float strengthMult = 1.0f;
             float strengthHolder = 50.0f;
-
-            //some zero guarding, I don't know If I need it, but better safe than sorry
             attackerStrength = std::max(1.0f, attackerStrength);
 
-            //this doesn't need to be two if statements, the logic is identical, collapse it down when I tidy the code
-
-            if (attackerStrength > 50.0f)
+            if (attackerStrength != 50.0f)
             {
                 strengthHolder = (attackerStrength - 50.0f);
                 strengthHolder /= 100.0f;
                 strengthMult += strengthHolder;
             }
-
-            if (attackerStrength < 50.0f)
-            {
-                strengthHolder = (attackerStrength - 50.0f);
-                strengthHolder /= 100.0f;
-                strengthMult += strengthHolder;
-            }
-
-            damage *= strengthMult;
-
-            //damage *= attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() / 40.0f;
-        }
 ```
+This has been tested and works fine with werewolves as well
 
-As stated in the comments, the guarding might not be strictly necessary, and the way the code is written is redundant, there's no need for the if forks as the logic works the same above and below 50. I just decided to leave it in for now until I start cleaning things.
-
-## 26, Pickpocketing overhaul
+## 26, Pickpocketing 
 `pickpocket.cpp`
 `pickpocketitemmodel.cpp`
 
@@ -4360,7 +4337,7 @@ This mean at maximum fatigue, you have a baseline success chance of 62.5%. If yo
 
 The idea with this change is to complement the menu logic, which determines which item appears, so that the player knows that any item they are capable of seeing is one they have a good chance of stealing. This is my way of unhiding the logic a little, without making the player memorise numbers.
 
-## 27, Updating server checksum
+## 27, Server checksum
 
 `Version.hpp`
 
@@ -4371,7 +4348,7 @@ Changes `Version.hpp` to,
 #define OPENMW_VERSION_HPP
 
 #define TES3MP_VERSION "0.8.1"
-#define TES3MP_PROTO_VERSION 805
+#define TES3MP_PROTO_VERSION 806
 
 #define TES3MP_DEFAULT_PASSW "blankpassword"
 #define TES3MP_MASTERSERVER_PASSW "12345"
@@ -4381,7 +4358,7 @@ Changes `Version.hpp` to,
 
 ```
 
-Working, this now produces a server and client that both have the internal checksum version of 805, instead of 10 for the core tes3mp release.
+Working, this now produces a server and client that both have the internal checksum version of 806, instead of 10 for the core tes3mp release.
 
 I have tested and it properly prevents you from connecting with the wrong version to the server, and from using the wrong client on a normal server.
 
@@ -4880,7 +4857,7 @@ This is because the code stores (in the case of reflected damage) the original c
 
 
 
-## 30, Spell buying substitution system
+## 30, Spell buying menu substitution system
 `spellbuyingwindow.cpp`    
 
 The function `void SpellBuyingWindow::setPtr(const MWWorld::Ptr& actor, int startOffset)` was updated as shown below,    
@@ -5073,13 +5050,10 @@ There are a few things you have to be aware of when making or adjusting custom s
 	- Be aware if you modify this further that the `config.lua` file is not part of the build when you compile, so you need to paste the most up to date `config.lua` file into the final version of any build you do 
 
 **List of all settings**
-- "long blades use agility for damage scaling"
-	- If true: Long blades use agility to scale their bonus damage 
-	- If false: Long blades use strength to scale their bonus damage (like axes and maces)
-- "two handed weapons receive an accuracy penalty"
+- `two handed weapons receive an accuracy penalty` - Boolean
 	- If true: 2 handed weapons take the -15% to hit penalty
 	- If false: 2 handed weapons recieve no penalty to their hit chance 
-- "staves receive accuracy bonus instead of two handed penalty"
+- `staves receive accuracy bonus instead of two handed penalty` - Boolean
 	- If true: Staves recieve the +20% to hit chance bonus
 	- If false: Staves use whatever modifier applies to other 2h weapons (if 2h accuracy penalty is on, staves take the -15% hit chance penalty, if that setting is also false then staves take neither the +20% bonus nor the -15% penalty) 
 - `global XP gain multiplier` - Float

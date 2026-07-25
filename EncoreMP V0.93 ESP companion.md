@@ -1,4 +1,4 @@
-This file details all the changes made in the required ESP file for the V0.92 EncoreMP beta release, `EncoreMPV092.ESP`.
+This file details all the changes made in the required ESP file for the V0.93 EncoreMP beta release, `EncoreMPV093.ESP`.
 
 # GMSTs
 
@@ -7,10 +7,6 @@ This file details all the changes made in the required ESP file for the V0.92 En
 	* This value is how many hours it takes for in-world shops to reset their gold. It was accelerated because time does not advance when resting in multiplayer. Though server commands can be used in the chat window to skip ahead if needed.
 - `fDispositionMod` changed to 0.25 (from 1 in the base game)
 	- This value is a multiplier for how much your disposition with an NPC affects your haggling (but not bartering) success rates. It was dropped to 1/4 of the base game value to pair up with the changes made in the engine to how much disposition affects shop prices (disposition now also now has 1/4 of the original effect on those as well).
-
-**Training costs**
-* `iTrainingModset` to 7 (from 10 in the base game)
-	* This value is multiplied by the training cost in the engine to get the final player facing values. It has been lowered from 10 to 7, meaning training prices are 70% of the values in the first encoreMP release. This was done as a balance change
 
 **Bribery (Speechcraft)**
 - `fBribe10Mod` set to 1 (from 35 in the base game)
@@ -60,11 +56,11 @@ This file details all the changes made in the required ESP file for the V0.92 En
 
 # XP values
 
-If a skill or XP value is not mentioned then it has been left at the base game value
+If a skill or XP value is not mentioned then they have been left at the base game values
 
 
 **Alchemy**
-- Creation a potion: 2xp to 2.5xp
+- Creation a potion: 2xp to 3xp
 - Eating an ingredient: 0.5xp to 0.75xp
 
 **Armorer**
@@ -75,9 +71,9 @@ If a skill or XP value is not mentioned then it has been left at the base game v
 - Swimming: 0.03xp to 0.07xp
 
 **Enchant**
-- Enchanting an item: 5xp
-- Recharging an item: 5xp
-- Using a magic item: 0.1xp to 0.2xp
+- Enchanting an item: 5xp to 10xp
+- Recharging an item: 5xp to 6xp
+- Using a magic item: 0.1xp to 0.5xp
 
 **Security**
 - Defeating a trap: 3xp to 4xp
@@ -86,10 +82,6 @@ If a skill or XP value is not mentioned then it has been left at the base game v
 **Speechcraft**
 - Successful persuasion: 1xp to 2xp
 - Failed persuasion: 0xp to 0.25xp
-
-**All schools of magic**
-- Successfully casting a spell: 1xp to 2xp
-- Note that in addition to this XP change, all spellcasting schools now also reward more XP when you cast more expensive spells
 
 **Long blade, Blunt weapons, Axe, and Spear**
 - Successful attack: 1xp to 0.5xp (axe was originally 1.2xp actually in the base game)

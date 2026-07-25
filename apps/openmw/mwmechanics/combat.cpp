@@ -316,7 +316,7 @@ namespace MWMechanics
 
             if (attacker == getPlayer())
             {
-                hitchanceholder += 20;
+                hitchanceholder += 10;
             }
 
             if (Misc::Rng::roll0to99() >= hitchanceholder)
@@ -669,14 +669,16 @@ namespace MWMechanics
             int weaponType;
             MWWorld::ContainerStoreIterator activeWeaponIt = MWMechanics::getActiveWeapon(attacker, &weaponType);
             float releventskill = 0.f;
-            float releventattribute = 0.f;
-            float exceeds50by = 0.f;
 
-            float baseDamageSnapshot;
-            baseDamageSnapshot = damage;
+            float baseDamageSnapshot = damage;
 
             damage *= fDamageStrengthBase +
                 (attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() * fDamageStrengthMult * 0.1f);
+
+            // this code is quite messy, it's been left 'spread out' into seperate blocks for ease of future editing
+            // each block, determined by weapon type, overwrites the damage back to the snapshot at the start, baseDamageSnapshot
+            // this snapshot is not needed in the live version, but it was structured this way during testing, so that there was a fallback damage value
+            // currently within each weapon block it gets the players weapon skill, reverts damage back to the snapshot value, and then scales damage with attribute and skill
 
             if (weaponType)
             {
@@ -687,10 +689,8 @@ namespace MWMechanics
                     {
                         releventskill = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::Spear));
 
-                        ///now we are modifying the damage based on weapon skill, revert the damage value back to what it was before the core game equation modified it
                         damage = baseDamageSnapshot;
 
-                        ///and now actually apply the desired formula using weapon skill
                         damage *= fDamageStrengthBase +
                             (((attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() + releventskill) / 2) * fDamageStrengthMult * 0.1f);
                     }
@@ -699,31 +699,13 @@ namespace MWMechanics
                     {
                         releventskill = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::LongBlade));
 
-                        ///now we are modifying the damage based on weapon skill, revert the damage value back to what it was before the core game equation modified it
+                        //bool useAgility = Settings::Manager::getBool("long blades use agility for damage scaling", "Game");
+                        //long blade agility scaling removed in V0.93, may be added back in a future version
+
                         damage = baseDamageSnapshot;
 
-                        ///and now actually apply the desired formula using weapon skill
                         damage *= fDamageStrengthBase +
                             (((attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() + releventskill) / 2) * fDamageStrengthMult * 0.1f);
-                    
-                        ///add the stat bonus for long blades, agility by default unless toggled off
-                        
-                        bool useAgility = Settings::Manager::getBool("long blades use agility for damage scaling", "Game");
-
-                        releventattribute = attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Agility).getModified();
-
-                        if (useAgility == false)
-                        {
-                            releventattribute = attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified();
-                        }
-
-                        /// end of stat bonus
-
-                        if (releventattribute > 50)
-                        {
-                            exceeds50by = (releventattribute - 50);
-                            damage *= (1 + (exceeds50by / 200));
-                        }
 
                     }
 
@@ -731,10 +713,8 @@ namespace MWMechanics
                     {
                         releventskill = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::ShortBlade));
 
-                        ///now we are modifying the damage based on weapon skill, revert the damage value back to what it was before the core game equation modified it
                         damage = baseDamageSnapshot;
 
-                        ///and now actually apply the desired formula using weapon skill
                         damage *= fDamageStrengthBase +
                             (((attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() + releventskill) / 2) * fDamageStrengthMult * 0.1f);
                     }
@@ -743,22 +723,10 @@ namespace MWMechanics
                     {
                         releventskill = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::BluntWeapon));
 
-                        ///now we are modifying the damage based on weapon skill, revert the damage value back to what it was before the core game equation modified it
                         damage = baseDamageSnapshot;
 
-                        ///and now actually apply the desired formula using weapon skill
                         damage *= fDamageStrengthBase +
                             (((attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() + releventskill) / 2) * fDamageStrengthMult * 0.1f);
-
-                        ///add the strength bonus for blunt
-
-                        releventattribute = attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified();
-
-                        if (releventattribute > 50)
-                        {
-                            exceeds50by = (releventattribute - 50);
-                            damage *= (1 + (exceeds50by / 200));
-                        }
                     
                     }
 
@@ -766,22 +734,10 @@ namespace MWMechanics
                     {
                         releventskill = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::Axe));
 
-                        ///now we are modifying the damage based on weapon skill, revert the damage value back to what it was before the core game equation modified it
                         damage = baseDamageSnapshot;
 
-                        ///and now actually apply the desired formula using weapon skill
                         damage *= fDamageStrengthBase +
                             (((attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() + releventskill) / 2) * fDamageStrengthMult * 0.1f);
-                    
-                        ///add the strength bonux for axe V0.81
-
-                        releventattribute = attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified();
-
-                        if (releventattribute > 50)
-                        {
-                            exceeds50by = (releventattribute - 50);
-                            damage *= (1 + (exceeds50by / 200));
-                        }
                     
                     }
 
@@ -789,10 +745,8 @@ namespace MWMechanics
                     {
                         releventskill = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::Marksman));
 
-                        ///now we are modifying the damage based on weapon skill, revert the damage value back to what it was before the core game equation modified it
                         damage = baseDamageSnapshot;
 
-                        ///and now actually apply the desired formula using weapon skill
                         damage *= fDamageStrengthBase +
                             (((attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Agility).getModified() + releventskill) / 2) * fDamageStrengthMult * 0.1f);
 
@@ -802,10 +756,8 @@ namespace MWMechanics
                     {
                         releventskill = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::Marksman));
 
-                        ///now we are modifying the damage based on weapon skill, revert the damage value back to what it was before the core game equation modified it
                         damage = baseDamageSnapshot;
 
-                        ///and now actually apply the desired formula using weapon skill
                         damage *= fDamageStrengthBase +
                             (((attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified() + releventskill) / 1.3) * fDamageStrengthMult * 0.1f);
                     }
@@ -829,8 +781,17 @@ namespace MWMechanics
         const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
         float minstrike = store.get<ESM::GameSetting>().find("fMinHandToHandMult")->mValue.getFloat();
         float maxstrike = store.get<ESM::GameSetting>().find("fMaxHandToHandMult")->mValue.getFloat();
-        damage  = (0.9f * (static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::HandToHand))));
-        damage += 10.0f;
+
+        if (attacker == MWMechanics::getPlayer())
+        {
+            damage = (0.9f * (static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::HandToHand))));
+            damage += 10.0f;
+        }
+        else
+        {
+            damage = static_cast<float>(attacker.getClass().getSkill(attacker, ESM::Skill::HandToHand));
+        }
+
         damage *= minstrike + ((maxstrike-minstrike)*attackStrength);
 
         MWMechanics::CreatureStats& otherstats = victim.getClass().getCreatureStats(victim);
@@ -849,19 +810,9 @@ namespace MWMechanics
             float attackerStrength = attacker.getClass().getCreatureStats(attacker).getAttribute(ESM::Attribute::Strength).getModified();
             float strengthMult = 1.0f;
             float strengthHolder = 50.0f;
-            //redundant guarding?
             attackerStrength = std::max(1.0f, attackerStrength);
 
-            // this doesn't need to be two if statements, the logic is identical, collapse it down when I tidy the code
-
-            if (attackerStrength > 50.0f)
-            {
-                strengthHolder = (attackerStrength - 50.0f);
-                strengthHolder /= 100.0f;
-                strengthMult += strengthHolder;
-            }
-
-            if (attackerStrength < 50.0f)
+            if (attackerStrength != 50.0f)
             {
                 strengthHolder = (attackerStrength - 50.0f);
                 strengthHolder /= 100.0f;

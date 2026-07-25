@@ -55,7 +55,8 @@ namespace MWPhysics
         if (player == MWBase::Environment::get().getWorld()->getPlayerPtr()) 
         {
             const MWMechanics::NpcStats &ptrNpcStats = player.getClass().getNpcStats(player);
-            const int baseAcrobatics = ptrNpcStats.getSkill(20).getBase();
+            //const int baseAcrobatics = ptrNpcStats.getSkill(20).getBase();
+            const int baseAcrobatics = ptrNpcStats.getSkill(20).getModified();
             float basedegrees = 47.0f;
             if (baseAcrobatics > 30)
             {
