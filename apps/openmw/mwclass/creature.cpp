@@ -577,11 +577,10 @@ namespace MWClass
                 damage = std::max(1.f, damage);
                 if (!attacker.isEmpty())
                 {
-                    // neccessary here to introduce a fork in behaviour, otherwise attacks on the player
-                    // would double dip in damage scaling by calling both difficulty scaling functions
-                    // no need to guard here against attacker is player, since this is creature specific combat
+                    // fixed some bad guarding that was here pre V0.93.1, bugged it so that creatures didnt take reduced damage from difficulty
+
                     MWWorld::Ptr player = MWMechanics::getPlayer();
-                    if (ptr == player)
+                    if (ptr == player || attacker == player)
                     {
                         damage = scaleDamage(damage, attacker, ptr);
                     }
@@ -609,7 +608,7 @@ namespace MWClass
                     MWWorld::Ptr player = MWMechanics::getPlayer();
                     if (damage > 0)
                     {
-                        if (ptr == player)
+                        if (ptr == player || attacker == player)
                         {
                             damage = scaleHandDamage(damage, attacker, ptr);
                         }
