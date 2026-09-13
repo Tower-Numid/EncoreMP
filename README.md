@@ -27,6 +27,12 @@ This is the sixth public beta release of EncoreMP: V0.93
 
 **Live release (V0.93.1) download page**: https://github.com/Tower-Numid/EncoreMP/releases/tag/0.93.1  
 
+**What's next for EncoreMP?**:  
+The author of tes3mp has announced it will be transitioning to OpenMW 0.51, which will open up many more lua scripting options.  
+Additionally, the latest version of Tamriel Rebuilt now requires lua scripting to access all it's features (namely the new spell effects it adds).   
+For these reasons EncoreMP will continue to be updated, but in parallel I will be attempting to re-create some of it's features as single player lua mods, so that they can be ported forwards into future versions of the engine with minimal effort. This will also mean that modders can adjust them as they see fit.  
+As of the 13th September, the other Project Tamriel mods have been updated to be in line with the latest Tamriel Rebuilt release, so I will also release updated spell ESPs for all three with the next EncoreMP version.  
+
 #### Required and optional ESP files
 - V0.93 requires the ESP `EncoreMPV093` to function as intended (this contains spell effect cost changes and minimal GMST changes)
 - The optional content ESP `EncoreMPV093newcontent`  balances birth-signs and racial abilities
