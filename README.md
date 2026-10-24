@@ -4,6 +4,7 @@ They retreated behind math, behind colour, behind the active principle itself.
 Baladas Demnevanni, 3E 427
 ```
 # :gear: EncoreMP :gear:
+![EncoreMP Logo](EncoreMPlogo.png)
 
 Welcome to EncoreMP, an engine level overhaul of many of Morrowind's core gameplay mechanics. 
 
