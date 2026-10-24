@@ -3,9 +3,10 @@ They retreated behind math, behind colour, behind the active principle itself.
 
 Baladas Demnevanni, 3E 427
 ```
-# EncoreMP
+
 ![EncoreMP Logo](EncoreMPlogo.png)
 
+# EncoreMP
 Welcome to EncoreMP, an engine level overhaul of many of Morrowind's core gameplay mechanics. 
 
 EncoreMP is a fork of tes3mp V0.8.1. The original tes3mp project is hosted here: https://github.com/TES3MP
